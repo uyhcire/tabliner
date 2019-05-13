@@ -4,8 +4,8 @@
   "description": "Manage tabs with a spreadsheets",
   "main": "src/main.js",
   "scripts": {
-    "build": "parcel build src/main.js -d build/ -o main.js",
-    "watch": "parcel watch src/main.js -d build/ -o main.js"
+    "build": "parcel build src/main.tsx -d build/ -o main.js",
+    "watch": "parcel watch src/main.tsx -d build/ -o main.js"
   },
   "author": "Eric Yu",
   "dependencies": {
@@ -13,6 +13,13 @@
     "babel-preset-react": "^6.24.1",
     "parcel-bundler": "^1.6.2",
     "react": "^16.2.0",
-    "react-dom": "^16.2.0"
+    "react-dom": "^16.2.0",
+    "tslib": "^1.9.3"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.83",
+    "@types/react": "^16.8.17",
+    "@types/react-dom": "^16.8.4",
+    "typescript": "^3.4.5"
   }
 }

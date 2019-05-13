@@ -1,10 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
-class App extends React.Component {
-  render() {
-    return "hello, world.";
-  }
+function App(): JSX.Element {
+  return <div>hello, world.</div>;
 }
 
 ReactDOM.render(<App />, document.getElementById("container"));
