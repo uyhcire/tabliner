@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
 
-  "name": "Tabsheet",
-  "description": "Manage tabs with a spreadsheet",
-  "version": "0.0.1",
+  "name": "Tabliner",
+  "description": "Manage your tabs",
+  "version": "0.0.2",
 
   "background": {
     "scripts": ["background.js"],

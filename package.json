@@ -1,7 +1,7 @@
 {
-  "name": "tabsheet",
-  "version": "0.0.1",
-  "description": "Manage tabs with a spreadsheets",
+  "name": "tabliner",
+  "version": "0.0.2",
+  "description": "Chrome extension for managing tabs",
   "main": "src/main.js",
   "scripts": {
     "build": "parcel build src/main.tsx -d build/ -o main.js",
