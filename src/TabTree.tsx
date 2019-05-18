@@ -30,16 +30,14 @@ export default function TabTree({
           break;
         case "ArrowUp":
           if (selectedTabIndex != null) {
-            setSelectedTabIndex(Math.max(0, selectedTabIndex - 1));
+            setSelectedTabIndex(selectedTabIndex - 1);
           } else {
             setSelectedTabIndex(chromeTabs.length - 1);
           }
           break;
         case "ArrowDown":
           if (selectedTabIndex != null) {
-            setSelectedTabIndex(
-              Math.min(chromeTabs.length - 1, selectedTabIndex + 1)
-            );
+            setSelectedTabIndex(selectedTabIndex + 1);
           } else {
             setSelectedTabIndex(0);
           }
