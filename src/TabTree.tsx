@@ -5,16 +5,14 @@ import { ChromeTab } from "./ChromeTab";
 
 interface TabTreeProps {
   chromeTabs: Array<ChromeTab>;
-  setChromeTabs: React.Dispatch<React.SetStateAction<Array<ChromeTab>>>;
-  setLocked: React.Dispatch<React.SetStateAction<boolean>>;
+  handleCloseTab(tabId: number): void;
   selectedTabIndex: number | null;
   setSelectedTabIndex: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
 export default function TabTree({
   chromeTabs,
-  setChromeTabs,
-  setLocked,
+  handleCloseTab,
   selectedTabIndex,
   setSelectedTabIndex
 }: TabTreeProps): JSX.Element {
@@ -25,18 +23,9 @@ export default function TabTree({
         case "Backspace":
           if (selectedTabIndex != null) {
             const selectedTabId = chromeTabs[selectedTabIndex].id;
-            if (selectedTabId == null) {
-              break;
+            if (selectedTabId != null) {
+              handleCloseTab(selectedTabId);
             }
-            setLocked(true);
-
-            chrome.tabs.remove(selectedTabId, () => {
-              setChromeTabs(chromeTabs.filter(tab => tab.id !== selectedTabId));
-              setSelectedTabIndex(
-                Math.min(selectedTabIndex, chromeTabs.length - 1 - 1)
-              );
-              setLocked(false);
-            });
           }
           break;
         case "ArrowUp":
@@ -66,13 +55,7 @@ export default function TabTree({
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [
-    chromeTabs,
-    setChromeTabs,
-    setLocked,
-    selectedTabIndex,
-    setSelectedTabIndex
-  ]);
+  }, [chromeTabs, handleCloseTab, selectedTabIndex, setSelectedTabIndex]);
 
   return (
     <Tree

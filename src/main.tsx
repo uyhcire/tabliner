@@ -1,52 +1,40 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom";
 
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
 
 import TabTree from "./TabTree";
-import { ChromeTab } from "./ChromeTab";
+import { useChromeTabs } from "./useChromeTabs";
 
-function useChromeTabs(): {
-  chromeTabs: Array<ChromeTab> | null;
-  setChromeTabs: React.Dispatch<React.SetStateAction<Array<ChromeTab> | null>>;
-  locked: boolean;
-  setLocked: React.Dispatch<React.SetStateAction<boolean>>;
-} {
-  const [chromeTabs, setChromeTabs] = useState<Array<ChromeTab> | null>(null);
-  const [locked, setLocked] = useState<boolean>(false);
+function useSelectedTabIndex(
+  numTabs: number | null
+): [number | null, React.Dispatch<React.SetStateAction<number | null>>] {
+  let [selectedTabIndex, setSelectedTabIndex] = useState<number | null>(null);
 
-  // Load tabs
-  useEffect((): void => {
-    chrome.tabs.query(
-      {},
-      (tabs: Array<ChromeTab>): void => setChromeTabs(tabs)
-    );
-  }, []);
+  if (selectedTabIndex == null || numTabs == null) {
+    selectedTabIndex == null;
+  } else if (selectedTabIndex < 0) {
+    selectedTabIndex = 0;
+  } else if (selectedTabIndex >= numTabs) {
+    selectedTabIndex = numTabs - 1;
+  }
 
-  return {
-    chromeTabs,
-    setChromeTabs: (newChromeTabs: Array<ChromeTab> | null): void => {
-      if (!locked) {
-        setChromeTabs(newChromeTabs);
-      }
-    },
-    locked,
-    setLocked
-  };
+  return [selectedTabIndex, setSelectedTabIndex];
 }
 
 function App(): JSX.Element {
-  const { chromeTabs, setChromeTabs, setLocked } = useChromeTabs();
-  const [selectedTabIndex, setSelectedTabIndex] = useState<number | null>(null);
+  const { chromeTabs, handleCloseTab } = useChromeTabs();
+  const [selectedTabIndex, setSelectedTabIndex] = useSelectedTabIndex(
+    chromeTabs && chromeTabs.length
+  );
 
   return (
     <div>
       {chromeTabs ? (
         <TabTree
           chromeTabs={chromeTabs}
-          setChromeTabs={setChromeTabs}
-          setLocked={setLocked}
+          handleCloseTab={handleCloseTab}
           selectedTabIndex={selectedTabIndex}
           setSelectedTabIndex={setSelectedTabIndex}
         />
