@@ -10,6 +10,7 @@ type ChromeTab = chrome.tabs.Tab & { title: string };
 
 function App(): JSX.Element {
   const [chromeTabs, setChromeTabs] = useState(null as Array<ChromeTab> | null);
+  const [selectedTabId, setSelectedTabId] = useState(null as number | null);
   // Load tabs
   useEffect(() => {
     chrome.tabs.query({}, (tabs: Array<ChromeTab>) => setChromeTabs(tabs));
@@ -18,15 +19,30 @@ function App(): JSX.Element {
   return (
     <div>
       {chromeTabs ? (
-        <Tree
-          contents={chromeTabs.map(
-            (tab): ITreeNode => ({
-              id: String(tab.id),
-              icon: <img src={tab.favIconUrl} height={20} width={20} />,
-              label: tab.title
-            })
-          )}
-        />
+        <div
+          tabIndex={0}
+          onKeyDown={e => {
+            if (e.key === "Backspace" && selectedTabId) {
+              chrome.tabs.remove(selectedTabId, () => {
+                setChromeTabs(
+                  chromeTabs.filter(tab => tab.id !== selectedTabId)
+                );
+              });
+            }
+          }}
+        >
+          <Tree
+            contents={chromeTabs.map(
+              (tab): ITreeNode => ({
+                id: String(tab.id),
+                icon: <img src={tab.favIconUrl} height={20} width={20} />,
+                label: tab.title,
+                isSelected: tab.id === selectedTabId
+              })
+            )}
+            onNodeClick={node => setSelectedTabId(Number(node.id))}
+          />
+        </div>
       ) : (
         <div>Loading...</div>
       )}
