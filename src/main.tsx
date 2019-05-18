@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
+import { Tree, ITreeNode } from "@blueprintjs/core";
+
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
 
@@ -16,11 +18,15 @@ function App(): JSX.Element {
   return (
     <div>
       {chromeTabs ? (
-        <ul>
-          {chromeTabs.map(tab => (
-            <li key={tab.id}>{tab.title}</li>
-          ))}
-        </ul>
+        <Tree
+          contents={chromeTabs.map(
+            (tab): ITreeNode => ({
+              id: String(tab.id),
+              icon: <img src={tab.favIconUrl} height={20} width={20} />,
+              label: tab.title
+            })
+          )}
+        />
       ) : (
         <div>Loading...</div>
       )}
