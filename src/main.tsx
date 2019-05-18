@@ -11,16 +11,14 @@ function App(): JSX.Element {
     chrome.tabs.query({}, (tabs: Array<ChromeTab>) => setChromeTabs(tabs));
   }, []);
 
-  return (
-    <div>
-      {JSON.stringify(
-        chromeTabs &&
-          chromeTabs.map(tab => ({
-            title: tab.title,
-            faviconUrl: tab.favIconUrl
-          }))
-      )}
-    </div>
+  return chromeTabs ? (
+    <ul>
+      {chromeTabs.map(tab => (
+        <li key={tab.id}>{tab.title}</li>
+      ))}
+    </ul>
+  ) : (
+    <div>Loading...</div>
   );
 }
 
