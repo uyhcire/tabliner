@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import { Tree, ITreeNode } from "@blueprintjs/core";
+import { Tree, ITreeNode, Colors } from "@blueprintjs/core";
 
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
