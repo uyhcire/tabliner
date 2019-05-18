@@ -6,6 +6,7 @@ export function useChromeTabs(): {
   handleCloseTab(tabId: number): void;
 } {
   const [chromeTabs, setChromeTabs] = useState<Array<ChromeTab> | null>(null);
+
   // Load tabs
   useEffect((): void => {
     chrome.tabs.query(
@@ -13,6 +14,7 @@ export function useChromeTabs(): {
       (tabs: Array<ChromeTab>): void => setChromeTabs(tabs)
     );
   }, []);
+
   useEffect(() => {
     function handleTabRemoved(tabId: number): void {
       setChromeTabs(chromeTabs && chromeTabs.filter(tab => tab.id !== tabId));
@@ -20,6 +22,7 @@ export function useChromeTabs(): {
     chrome.tabs.onRemoved.addListener(handleTabRemoved);
     return () => chrome.tabs.onRemoved.removeListener(handleTabRemoved);
   });
+
   return {
     chromeTabs,
     handleCloseTab(tabId: number): void {
