@@ -12,6 +12,7 @@ function useSelectedTabIndex(
 ): [number | null, React.Dispatch<React.SetStateAction<number | null>>] {
   let [selectedTabIndex, setSelectedTabIndex] = useState<number | null>(null);
 
+  // Keep selectedTabIndex within bounds
   if (selectedTabIndex == null || numTabs == null) {
     selectedTabIndex == null;
   } else if (selectedTabIndex < 0) {
