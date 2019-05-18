@@ -5,7 +5,8 @@
   "main": "src/main.js",
   "scripts": {
     "build": "parcel build src/main.tsx -d build/ -o main.js",
-    "watch": "parcel watch src/main.tsx -d build/ -o main.js"
+    "watch": "parcel watch src/main.tsx -d build/ -o main.js",
+    "test": "jest"
   },
   "author": "Eric Yu",
   "dependencies": {
@@ -21,6 +22,9 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.0.83",
+    "@types/enzyme": "^3.9.2",
+    "@types/enzyme-adapter-react-16": "^1.0.5",
+    "@types/jest": "^24.0.13",
     "@types/react": "^16.8",
     "@types/react-dom": "^16.8",
     "@typescript-eslint/eslint-plugin": "1.9.0",
@@ -28,10 +32,13 @@
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.13.0",
     "eslint": "^5.16.0",
+    "eslint-plugin-jest": "^22.5.1",
     "eslint-plugin-react": "^7.13.0",
     "eslint-plugin-react-hooks": "^1.6.0",
     "jest": "^24.8.0",
+    "jest-enzyme": "^7.0.2",
     "react-test-renderer": "^16.8.6",
+    "ts-jest": "^24.0.2",
     "typescript": "^3.4.5"
   }
 }

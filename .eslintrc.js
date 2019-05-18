@@ -1,7 +1,9 @@
 module.exports = {
   env: {
     browser: true,
-    es6: true
+    es6: true,
+    node: true,
+    "jest/globals": true
   },
   extends: [
     "eslint:recommended",
@@ -21,7 +23,7 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: "module"
   },
-  plugins: ["react", "@typescript-eslint", "react-hooks"],
+  plugins: ["react", "@typescript-eslint", "react-hooks", "jest"],
   rules: {
     indent: "off",
     "@typescript-eslint/indent": "off",
