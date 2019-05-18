@@ -18,56 +18,61 @@ export default function TabTree({
   selectedTabIndex,
   setSelectedTabIndex
 }: TabTreeProps): JSX.Element {
-  const handleKeyDown = (e: KeyboardEvent) => {
-    let shouldCapture = true;
-    switch (e.key) {
-      case "Backspace":
-        if (selectedTabIndex != null) {
-          const selectedTabId = chromeTabs[selectedTabIndex].id;
-          if (selectedTabId == null) {
-            break;
-          }
-          setLocked(true);
-
-          chrome.tabs.remove(selectedTabId, () => {
-            setChromeTabs(chromeTabs.filter(tab => tab.id !== selectedTabId));
-            setSelectedTabIndex(
-              Math.min(selectedTabIndex, chromeTabs.length - 1 - 1)
-            );
-            setLocked(false);
-          });
-        }
-        break;
-      case "ArrowUp":
-        if (selectedTabIndex != null) {
-          setSelectedTabIndex(Math.max(0, selectedTabIndex - 1));
-        } else {
-          setSelectedTabIndex(chromeTabs.length - 1);
-        }
-        break;
-      case "ArrowDown":
-        console.log(selectedTabIndex, chromeTabs.length);
-        if (selectedTabIndex != null) {
-          setSelectedTabIndex(
-            Math.min(chromeTabs.length - 1, selectedTabIndex + 1)
-          );
-        } else {
-          setSelectedTabIndex(0);
-        }
-        break;
-      default:
-        // Do nothing
-        shouldCapture = false;
-    }
-    if (shouldCapture) {
-      e.preventDefault();
-    }
-  };
-
   useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent): void {
+      let shouldCapture = true;
+      switch (e.key) {
+        case "Backspace":
+          if (selectedTabIndex != null) {
+            const selectedTabId = chromeTabs[selectedTabIndex].id;
+            if (selectedTabId == null) {
+              break;
+            }
+            setLocked(true);
+
+            chrome.tabs.remove(selectedTabId, () => {
+              setChromeTabs(chromeTabs.filter(tab => tab.id !== selectedTabId));
+              setSelectedTabIndex(
+                Math.min(selectedTabIndex, chromeTabs.length - 1 - 1)
+              );
+              setLocked(false);
+            });
+          }
+          break;
+        case "ArrowUp":
+          if (selectedTabIndex != null) {
+            setSelectedTabIndex(Math.max(0, selectedTabIndex - 1));
+          } else {
+            setSelectedTabIndex(chromeTabs.length - 1);
+          }
+          break;
+        case "ArrowDown":
+          if (selectedTabIndex != null) {
+            setSelectedTabIndex(
+              Math.min(chromeTabs.length - 1, selectedTabIndex + 1)
+            );
+          } else {
+            setSelectedTabIndex(0);
+          }
+          break;
+        default:
+          // Do nothing
+          shouldCapture = false;
+      }
+      if (shouldCapture) {
+        e.preventDefault();
+      }
+    }
+
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [selectedTabIndex]);
+  }, [
+    chromeTabs,
+    setChromeTabs,
+    setLocked,
+    selectedTabIndex,
+    setSelectedTabIndex
+  ]);
 
   return (
     <Tree

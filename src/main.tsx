@@ -17,13 +17,16 @@ function useChromeTabs(): {
   const [locked, setLocked] = useState<boolean>(false);
 
   // Load tabs
-  useEffect(() => {
-    chrome.tabs.query({}, (tabs: Array<ChromeTab>) => setChromeTabs(tabs));
+  useEffect((): void => {
+    chrome.tabs.query(
+      {},
+      (tabs: Array<ChromeTab>): void => setChromeTabs(tabs)
+    );
   }, []);
 
   return {
     chromeTabs,
-    setChromeTabs: (newChromeTabs: Array<ChromeTab> | null) => {
+    setChromeTabs: (newChromeTabs: Array<ChromeTab> | null): void => {
       if (!locked) {
         setChromeTabs(newChromeTabs);
       }
