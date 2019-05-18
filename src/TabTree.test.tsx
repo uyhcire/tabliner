@@ -54,6 +54,20 @@ it("renders", () => {
   expect(wrapper.text()).not.toMatch(/some random website/);
 });
 
+it("removes the selected tab on Backspace", () => {
+  const mockHandleCloseTab = jest.fn();
+  mount(
+    <TabTree
+      chromeTabs={CHROME_TABS}
+      handleCloseTab={mockHandleCloseTab}
+      selectedTabIndex={0}
+      setSelectedTabIndex={() => {}}
+    />
+  );
+  document.dispatchEvent(new KeyboardEvent("keydown", { key: "Backspace" }));
+  expect(mockHandleCloseTab).lastCalledWith(CHROME_TABS[0].id);
+});
+
 describe("selection", () => {
   it("selects a tab when clicked", () => {
     const mockSetSelectedTabIndex = jest.fn();
