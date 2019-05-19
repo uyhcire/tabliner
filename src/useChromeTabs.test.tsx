@@ -25,28 +25,58 @@ function MockComponent(): JSX.Element {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare let global: NodeJS.Global & { chrome?: any };
+type TabMovedListener = Parameters<chrome.tabs.TabMovedEvent["addListener"]>[0];
+type TabRemovedListener = Parameters<
+  chrome.tabs.TabRemovedEvent["addListener"]
+>[0];
 
-let onRemovedListeners: Array<(tabId: number) => void>;
+interface MockEvent<ListenerType> {
+  addListener: (cb: ListenerType) => void;
+  removeListener: (cb: ListenerType) => void;
+}
+
+declare let global: NodeJS.Global & {
+  chrome?: {
+    tabs: {
+      query: typeof chrome.tabs.query;
+      remove: typeof chrome.tabs.remove;
+      onMoved: MockEvent<TabMovedListener>;
+      onRemoved: MockEvent<TabRemovedListener>;
+    };
+  };
+};
+
+let onMovedListeners: Array<TabMovedListener> = [];
+let onRemovedListeners: Array<TabRemovedListener>;
 beforeEach(() => {
+  onMovedListeners = [];
   onRemovedListeners = [];
   global.chrome = {
     tabs: {
       query: (_options: never, cb: (tabs: Array<ChromeTab>) => void) => {
         cb(CHROME_TABS);
       },
-      onRemoved: {
-        addListener: (cb: (tabId: number) => void) => {
-          onRemovedListeners.push(cb);
+      remove: jest.fn(),
+      onMoved: {
+        addListener: (cb: TabMovedListener) => {
+          onMovedListeners.push(cb);
         },
-        removeListener: (cb: (tabId: number) => void) => {
-          onRemovedListeners = onRemovedListeners.filter(
+        removeListener: (cb: TabMovedListener) => {
+          onMovedListeners = onMovedListeners.filter(
             listener => listener !== cb
           );
         }
       },
-      remove: jest.fn()
+      onRemoved: {
+        addListener: (cb: TabRemovedListener) => {
+          onRemovedListeners.push(cb);
+        },
+        removeListener: (cb: TabRemovedListener) => {
+          onRemovedListeners = onRemovedListeners.filter(
+            listener => listener !== cb
+          );
+        }
+      }
     }
   };
 });
@@ -77,11 +107,31 @@ it("removes tabs from the list when they are closed", () => {
   const wrapper = mount(<MockComponent />);
   expect(onRemovedListeners).toHaveLength(1);
   act(() => {
-    onRemovedListeners[0](CHROME_TABS[0].id);
+    onRemovedListeners[0](CHROME_TABS[0].id, {
+      windowId: CHROME_TABS[0].windowId,
+      isWindowClosing: false
+    });
   });
   wrapper.update();
   expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
     CHROME_TABS[1]
+  ]);
+});
+
+it("reorders tabs in the list when they are moved", () => {
+  const wrapper = mount(<MockComponent />);
+  expect(onMovedListeners).toHaveLength(1);
+  act(() => {
+    onMovedListeners[0](CHROME_TABS[0].id, {
+      fromIndex: 0,
+      toIndex: 1,
+      windowId: CHROME_TABS[0].windowId
+    });
+  });
+  wrapper.update();
+  expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
+    { ...CHROME_TABS[1], index: 0 },
+    { ...CHROME_TABS[0], index: 1 }
   ]);
 });
 
