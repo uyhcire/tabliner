@@ -1,63 +1,95 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import { ChromeTab } from "./ChromeTab";
+
+interface QueryReturned {
+  type: "QUERY_RETURNED";
+  tabs: Array<ChromeTab>;
+}
+
+interface TabRemovedEvent {
+  type: "TAB_REMOVED_EVENT";
+  tabId: number;
+}
+
+interface TabMovedEvent {
+  type: "TAB_MOVED_EVENT";
+  tabId: number;
+  moveInfo: chrome.tabs.TabMoveInfo;
+}
+
+type ChromeTabsAction = QueryReturned | TabRemovedEvent | TabMovedEvent;
+
+function reduceChromeTabs(
+  chromeTabs: Array<ChromeTab> | null,
+  action: ChromeTabsAction
+): Array<ChromeTab> | null {
+  if (action.type === "QUERY_RETURNED") {
+    return action.tabs;
+  }
+
+  if (chromeTabs == null) {
+    return null;
+  }
+
+  switch (action.type) {
+    case "TAB_REMOVED_EVENT":
+      return chromeTabs.filter(tab => tab.id !== action.tabId);
+    case "TAB_MOVED_EVENT": {
+      const { tabId, moveInfo } = action;
+
+      if (chromeTabs[moveInfo.fromIndex].id !== tabId) {
+        throw new Error("A tab was moved but could not be found!");
+      }
+
+      let newTabs = [
+        ...chromeTabs.slice(0, moveInfo.fromIndex),
+        ...chromeTabs.slice(moveInfo.fromIndex + 1)
+      ];
+      newTabs = [
+        ...newTabs.slice(0, moveInfo.toIndex),
+        chromeTabs[moveInfo.fromIndex],
+        ...newTabs.slice(moveInfo.toIndex)
+      ];
+      return newTabs.map((tab, index) => ({ ...tab, index }));
+    }
+  }
+}
 
 export function useChromeTabs(): {
   chromeTabs: Array<ChromeTab> | null;
   handleCloseTab(tabId: number): void;
   handleMoveTab(tabId: number, newIndex: number): void;
 } {
-  const [chromeTabs, setChromeTabs] = useState<Array<ChromeTab> | null>(null);
+  const [chromeTabs, dispatch] = useReducer(reduceChromeTabs, null);
 
   // Load tabs
   useEffect((): void => {
     chrome.tabs.query(
       {},
-      (tabs: Array<ChromeTab>): void => setChromeTabs(tabs)
+      (tabs: Array<ChromeTab>): void =>
+        dispatch({ type: "QUERY_RETURNED", tabs })
     );
   }, []);
 
   useEffect(() => {
     function handleTabRemoved(tabId: number): void {
-      setChromeTabs(chromeTabs && chromeTabs.filter(tab => tab.id !== tabId));
+      dispatch({ type: "TAB_REMOVED_EVENT", tabId });
     }
     chrome.tabs.onRemoved.addListener(handleTabRemoved);
     return () => chrome.tabs.onRemoved.removeListener(handleTabRemoved);
-  });
+  }, []);
 
   useEffect(() => {
     function handleTabMoved(
       tabId: number,
-      // Chrome also sends fromIndex, but that doesn't seem reliable.
-      // When a tab is dragged across multiple other tabs, Chrome fires
-      // multiple onMoved events, each with the same fromIndex
-      // (instead of using the tab's new location as the fromIndex each time).
-      // So in general, chromeTabs[fromIndex].id !== tabId, and fromIndex isn't very useful.
-      moveInfo: { toIndex: number }
+      moveInfo: chrome.tabs.TabMoveInfo
     ): void {
-      if (chromeTabs) {
-        const fromIndex = chromeTabs.findIndex(tab => tab.id === tabId);
-        if (fromIndex === -1) {
-          throw new Error(`Tab ID ${tabId} could not be found`);
-        }
-
-        let newTabs = [
-          ...chromeTabs.slice(0, fromIndex),
-          ...chromeTabs.slice(fromIndex + 1)
-        ];
-        newTabs = [
-          ...newTabs.slice(0, moveInfo.toIndex),
-          chromeTabs[fromIndex],
-          ...newTabs.slice(moveInfo.toIndex)
-        ];
-        newTabs = newTabs.map((tab, index) => ({ ...tab, index }));
-
-        setChromeTabs(newTabs);
-      }
+      dispatch({ type: "TAB_MOVED_EVENT", tabId, moveInfo });
     }
 
     chrome.tabs.onMoved.addListener(handleTabMoved);
     return () => chrome.tabs.onMoved.removeListener(handleTabMoved);
-  });
+  }, []);
 
   return {
     chromeTabs,

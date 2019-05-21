@@ -142,7 +142,6 @@ it("reorders tabs in the list when they are moved", () => {
 });
 
 it("reorders tabs when a tab is moved across multiple tabs", () => {
-  // I dragged the 1st tab to be 6th and recorded the events Chrome fired
   const tabs = makeChromeTabs([
     { title: "1", url: "https://example.com/1" },
     { title: "2", url: "https://example.com/2" },
@@ -155,6 +154,7 @@ it("reorders tabs when a tab is moved across multiple tabs", () => {
   const wrapper = mount(<MockComponent />);
   expect(onMovedListeners).toHaveLength(1);
   act(() => {
+    // I dragged the 1st tab to be 6th and recorded the events Chrome fired
     for (const [fromIndex, toIndex] of [
       [0, 1],
       [1, 2],
@@ -170,14 +170,46 @@ it("reorders tabs when a tab is moved across multiple tabs", () => {
     }
   });
   wrapper.update();
-  expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
-    { ...tabs[1], index: 0 },
-    { ...tabs[2], index: 1 },
-    { ...tabs[3], index: 2 },
-    { ...tabs[4], index: 3 },
-    { ...tabs[5], index: 4 },
-    { ...tabs[0], index: 5 }
+  expect(
+    wrapper
+      .find(MockChildComponent)
+      .props()
+      .chromeTabs!.map(tab => tab.title)
+  ).toEqual(["2", "3", "4", "5", "6", "1"]);
+});
+
+it("reorders tabs when a group of 2 tabs is dragged 2 tabs to the right", () => {
+  const tabs = makeChromeTabs([
+    { title: "1", url: "https://example.com/1" },
+    { title: "2", url: "https://example.com/2" },
+    { title: "3", url: "https://example.com/3" },
+    { title: "4", url: "https://example.com/4" }
   ]);
+  global.chrome = getMockChromeTabsApi(tabs);
+  const wrapper = mount(<MockComponent />);
+  expect(onMovedListeners).toHaveLength(1);
+  act(() => {
+    // I dragged a group of 2 tabs and recorded the events Chrome fired
+    for (const [tabId, fromIndex, toIndex] of [
+      [tabs[0].id, 0, 2],
+      [tabs[1].id, 0, 2],
+      [tabs[0].id, 1, 3],
+      [tabs[1].id, 1, 3]
+    ]) {
+      onMovedListeners[0](tabId, {
+        fromIndex,
+        toIndex,
+        windowId: tabs[0].windowId
+      });
+    }
+  });
+  wrapper.update();
+  expect(
+    wrapper
+      .find(MockChildComponent)
+      .props()
+      .chromeTabs!.map(tab => tab.title)
+  ).toEqual(["3", "4", "1", "2"]);
 });
 
 afterEach(() => {
