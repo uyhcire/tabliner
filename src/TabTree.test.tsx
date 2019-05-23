@@ -125,3 +125,18 @@ describe("reordering tabs", () => {
     expect(mockSetSelectedTabIndex).not.toBeCalled();
   });
 });
+
+it("clears selection when Escape is pressed", () => {
+  let mockSetSelectedTabIndex = jest.fn();
+  mount(
+    <TabTree
+      chromeTabs={CHROME_TABS}
+      handleCloseTab={() => {}}
+      handleMoveTab={() => {}}
+      selectedTabIndex={0}
+      setSelectedTabIndex={mockSetSelectedTabIndex}
+    />
+  );
+  document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+  expect(mockSetSelectedTabIndex).lastCalledWith(null);
+});

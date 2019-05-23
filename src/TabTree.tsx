@@ -69,6 +69,9 @@ export default function TabTree({
           setSelectedTabIndex(0);
         }
       });
+      handleKey("Escape", e, () => {
+        setSelectedTabIndex(null);
+      });
     }
 
     document.addEventListener("keydown", handleKeyDown);
