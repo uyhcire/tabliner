@@ -8,7 +8,7 @@ import TabTree from "./TabTree";
 import { useChromeTabs } from "./useChromeTabs";
 import { useSelectedTabIndex } from "./useSelectedTabIndex";
 
-function App(): JSX.Element {
+function App(): JSX.Element | null {
   const { chromeTabs, handleCloseTab, handleMoveTab } = useChromeTabs();
   const [selectedTabIndex, setSelectedTabIndex] = useSelectedTabIndex(
     chromeTabs && chromeTabs.length
@@ -24,9 +24,7 @@ function App(): JSX.Element {
           selectedTabIndex={selectedTabIndex}
           setSelectedTabIndex={setSelectedTabIndex}
         />
-      ) : (
-        <div>Loading...</div>
-      )}
+      ) : null}
     </div>
   );
 }
