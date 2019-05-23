@@ -9,7 +9,7 @@ import { useChromeTabs } from "./useChromeTabs";
 import { useSelectedTabIndex } from "./useSelectedTabIndex";
 
 function App(): JSX.Element {
-  const { chromeTabs, handleCloseTab } = useChromeTabs();
+  const { chromeTabs, handleCloseTab, handleMoveTab } = useChromeTabs();
   const [selectedTabIndex, setSelectedTabIndex] = useSelectedTabIndex(
     chromeTabs && chromeTabs.length
   );
@@ -20,6 +20,7 @@ function App(): JSX.Element {
         <TabTree
           chromeTabs={chromeTabs}
           handleCloseTab={handleCloseTab}
+          handleMoveTab={handleMoveTab}
           selectedTabIndex={selectedTabIndex}
           setSelectedTabIndex={setSelectedTabIndex}
         />

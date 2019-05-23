@@ -3,9 +3,18 @@ import { Tree, ITreeNode } from "@blueprintjs/core";
 
 import { ChromeTab } from "./ChromeTab";
 
+// Helper to make sure we call e.preventDefault() if and only if we handle the key
+function handleKey(key: string, e: KeyboardEvent, handler: () => void): void {
+  if (e.key === key) {
+    e.preventDefault();
+    handler();
+  }
+}
+
 interface TabTreeProps {
   chromeTabs: Array<ChromeTab>;
   handleCloseTab(tabId: number): void;
+  handleMoveTab(tabId: number, newIndex: number): void;
   selectedTabIndex: number | null;
   setSelectedTabIndex: React.Dispatch<React.SetStateAction<number | null>>;
 }
@@ -13,47 +22,64 @@ interface TabTreeProps {
 export default function TabTree({
   chromeTabs,
   handleCloseTab,
+  handleMoveTab,
   selectedTabIndex,
   setSelectedTabIndex
 }: TabTreeProps): JSX.Element {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent): void {
-      let shouldCapture = true;
-      switch (e.key) {
-        case "Backspace":
-          if (selectedTabIndex != null) {
+      handleKey("Backspace", e, () => {
+        if (selectedTabIndex != null) {
+          const selectedTabId = chromeTabs[selectedTabIndex].id;
+          if (selectedTabId != null) {
+            handleCloseTab(selectedTabId);
+          }
+        }
+      });
+      handleKey("ArrowUp", e, () => {
+        if (e.metaKey) {
+          if (selectedTabIndex != null && selectedTabIndex > 0) {
             const selectedTabId = chromeTabs[selectedTabIndex].id;
             if (selectedTabId != null) {
-              handleCloseTab(selectedTabId);
+              setSelectedTabIndex(selectedTabIndex - 1);
+              handleMoveTab(selectedTabId, selectedTabIndex - 1);
             }
           }
-          break;
-        case "ArrowUp":
-          if (selectedTabIndex != null) {
-            setSelectedTabIndex(selectedTabIndex - 1);
-          } else {
-            setSelectedTabIndex(chromeTabs.length - 1);
+        } else if (selectedTabIndex != null) {
+          setSelectedTabIndex(selectedTabIndex - 1);
+        } else {
+          setSelectedTabIndex(chromeTabs.length - 1);
+        }
+      });
+      handleKey("ArrowDown", e, () => {
+        if (e.metaKey) {
+          if (
+            selectedTabIndex != null &&
+            selectedTabIndex < chromeTabs.length - 1
+          ) {
+            const selectedTabId = chromeTabs[selectedTabIndex].id;
+            if (selectedTabId != null) {
+              setSelectedTabIndex(selectedTabIndex + 1);
+              handleMoveTab(selectedTabId, selectedTabIndex + 1);
+            }
           }
-          break;
-        case "ArrowDown":
-          if (selectedTabIndex != null) {
-            setSelectedTabIndex(selectedTabIndex + 1);
-          } else {
-            setSelectedTabIndex(0);
-          }
-          break;
-        default:
-          // Do nothing
-          shouldCapture = false;
-      }
-      if (shouldCapture) {
-        e.preventDefault();
-      }
+        } else if (selectedTabIndex != null) {
+          setSelectedTabIndex(selectedTabIndex + 1);
+        } else {
+          setSelectedTabIndex(0);
+        }
+      });
     }
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [chromeTabs, handleCloseTab, selectedTabIndex, setSelectedTabIndex]);
+  }, [
+    chromeTabs,
+    handleCloseTab,
+    handleMoveTab,
+    selectedTabIndex,
+    setSelectedTabIndex
+  ]);
 
   return (
     <Tree
