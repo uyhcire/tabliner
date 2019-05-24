@@ -12,6 +12,14 @@
   "browser_action": {
     "default_title": "Open"
   },
+  "commands": {
+    "open": {
+      "suggested_key": {
+        "default": "Ctrl+Period"
+      },
+      "description": "Open Tabliner"
+    }
+  },
   "permissions": ["tabs", "windows"],
 
   "content_scripts": [
