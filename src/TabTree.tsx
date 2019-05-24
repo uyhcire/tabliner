@@ -15,6 +15,7 @@ interface TabTreeProps {
   chromeTabs: Array<ChromeTab>;
   handleCloseTab(tabId: number): void;
   handleMoveTab(tabId: number, newIndex: number): void;
+  handleGoToTab(tabId: number): void;
   selectedTabIndex: number | null;
   setSelectedTabIndex: React.Dispatch<React.SetStateAction<number | null>>;
 }
@@ -23,6 +24,7 @@ export default function TabTree({
   chromeTabs,
   handleCloseTab,
   handleMoveTab,
+  handleGoToTab,
   selectedTabIndex,
   setSelectedTabIndex
 }: TabTreeProps): JSX.Element {
@@ -33,6 +35,14 @@ export default function TabTree({
           const selectedTabId = chromeTabs[selectedTabIndex].id;
           if (selectedTabId != null) {
             handleCloseTab(selectedTabId);
+          }
+        }
+      });
+      handleKey("Enter", e, () => {
+        if (selectedTabIndex != null) {
+          const selectedTabId = chromeTabs[selectedTabIndex].id;
+          if (selectedTabId != null) {
+            handleGoToTab(selectedTabId);
           }
         }
       });
@@ -80,6 +90,7 @@ export default function TabTree({
     chromeTabs,
     handleCloseTab,
     handleMoveTab,
+    handleGoToTab,
     selectedTabIndex,
     setSelectedTabIndex
   ]);

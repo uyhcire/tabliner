@@ -9,7 +9,12 @@ import { useChromeTabs } from "./useChromeTabs";
 import { useSelectedTabIndex } from "./useSelectedTabIndex";
 
 function App(): JSX.Element | null {
-  const { chromeTabs, handleCloseTab, handleMoveTab } = useChromeTabs();
+  const {
+    chromeTabs,
+    handleCloseTab,
+    handleMoveTab,
+    handleGoToTab
+  } = useChromeTabs();
   const [selectedTabIndex, setSelectedTabIndex] = useSelectedTabIndex(
     chromeTabs && chromeTabs.length
   );
@@ -21,6 +26,7 @@ function App(): JSX.Element | null {
           chromeTabs={chromeTabs}
           handleCloseTab={handleCloseTab}
           handleMoveTab={handleMoveTab}
+          handleGoToTab={handleGoToTab}
           selectedTabIndex={selectedTabIndex}
           setSelectedTabIndex={setSelectedTabIndex}
         />

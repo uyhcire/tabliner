@@ -12,7 +12,7 @@
   "browser_action": {
     "default_title": "Open"
   },
-  "permissions": ["tabs"],
+  "permissions": ["tabs", "windows"],
 
   "content_scripts": [
     {

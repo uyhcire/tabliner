@@ -11,6 +11,7 @@ it("renders", () => {
       chromeTabs={CHROME_TABS}
       handleCloseTab={() => {}}
       handleMoveTab={() => {}}
+      handleGoToTab={() => {}}
       selectedTabIndex={null}
       setSelectedTabIndex={() => {}}
     />
@@ -27,6 +28,7 @@ it("removes the selected tab on Backspace", () => {
       chromeTabs={CHROME_TABS}
       handleCloseTab={mockHandleCloseTab}
       handleMoveTab={() => {}}
+      handleGoToTab={() => {}}
       selectedTabIndex={0}
       setSelectedTabIndex={() => {}}
     />
@@ -43,6 +45,7 @@ describe("selection", () => {
         chromeTabs={CHROME_TABS}
         handleCloseTab={() => {}}
         handleMoveTab={() => {}}
+        handleGoToTab={() => {}}
         selectedTabIndex={null}
         setSelectedTabIndex={mockSetSelectedTabIndex}
       />
@@ -64,12 +67,13 @@ describe("selection", () => {
   ])(
     "supports navigating up and down with the arrow keys (key %j, initial index %j, expected index %j)",
     (key: string, initialIndex: number, expectedIndex: number) => {
-      let mockSetSelectedTabIndex = jest.fn();
+      const mockSetSelectedTabIndex = jest.fn();
       mount(
         <TabTree
           chromeTabs={CHROME_TABS}
           handleCloseTab={() => {}}
           handleMoveTab={() => {}}
+          handleGoToTab={() => {}}
           selectedTabIndex={initialIndex}
           setSelectedTabIndex={mockSetSelectedTabIndex}
         />
@@ -84,13 +88,14 @@ describe("reordering tabs", () => {
   test.each([["ArrowUp", 1, 0], ["ArrowDown", 0, 1]])(
     "reorders tabs on Meta + arrow key (key %j, initial index %j, expected index %j)",
     (key: string, initialIndex: number, expectedIndex: number) => {
-      let mockHandleMoveTab = jest.fn();
-      let mockSetSelectedTabIndex = jest.fn();
+      const mockHandleMoveTab = jest.fn();
+      const mockSetSelectedTabIndex = jest.fn();
       mount(
         <TabTree
           chromeTabs={CHROME_TABS}
           handleCloseTab={() => {}}
           handleMoveTab={mockHandleMoveTab}
+          handleGoToTab={() => {}}
           selectedTabIndex={initialIndex}
           setSelectedTabIndex={mockSetSelectedTabIndex}
         />
@@ -107,13 +112,14 @@ describe("reordering tabs", () => {
   );
 
   it("does not respond to Meta + arrow key when no tab is selected", () => {
-    let mockHandleMoveTab = jest.fn();
-    let mockSetSelectedTabIndex = jest.fn();
+    const mockHandleMoveTab = jest.fn();
+    const mockSetSelectedTabIndex = jest.fn();
     mount(
       <TabTree
         chromeTabs={CHROME_TABS}
         handleCloseTab={() => {}}
         handleMoveTab={mockHandleMoveTab}
+        handleGoToTab={() => {}}
         selectedTabIndex={null}
         setSelectedTabIndex={mockSetSelectedTabIndex}
       />
@@ -127,16 +133,33 @@ describe("reordering tabs", () => {
 });
 
 it("clears selection when Escape is pressed", () => {
-  let mockSetSelectedTabIndex = jest.fn();
+  const mockSetSelectedTabIndex = jest.fn();
   mount(
     <TabTree
       chromeTabs={CHROME_TABS}
       handleCloseTab={() => {}}
       handleMoveTab={() => {}}
+      handleGoToTab={() => {}}
       selectedTabIndex={0}
       setSelectedTabIndex={mockSetSelectedTabIndex}
     />
   );
   document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
   expect(mockSetSelectedTabIndex).lastCalledWith(null);
+});
+
+it("goes to the selected tab when Enter is pressed", () => {
+  const mockHandleGoToTab = jest.fn();
+  mount(
+    <TabTree
+      chromeTabs={CHROME_TABS}
+      handleCloseTab={() => {}}
+      handleMoveTab={() => {}}
+      handleGoToTab={mockHandleGoToTab}
+      selectedTabIndex={0}
+      setSelectedTabIndex={() => {}}
+    />
+  );
+  document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+  expect(mockHandleGoToTab).lastCalledWith(CHROME_TABS[0].id);
 });
