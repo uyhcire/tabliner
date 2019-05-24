@@ -11,11 +11,12 @@ function handleKey(key: string, e: KeyboardEvent, handler: () => void): void {
   }
 }
 
-interface TabTreeProps {
+export interface TabTreeProps {
   chromeTabs: Array<ChromeTab>;
   handleCloseTab(tabId: number): void;
   handleMoveTab(tabId: number, newIndex: number): void;
   handleGoToTab(tabId: number): void;
+  handleCreateTabAfter(tabId: number): void;
   selectedTabIndex: number | null;
   setSelectedTabIndex: React.Dispatch<React.SetStateAction<number | null>>;
 }
@@ -25,6 +26,7 @@ export default function TabTree({
   handleCloseTab,
   handleMoveTab,
   handleGoToTab,
+  handleCreateTabAfter,
   selectedTabIndex,
   setSelectedTabIndex
 }: TabTreeProps): JSX.Element {
@@ -43,6 +45,14 @@ export default function TabTree({
           const selectedTabId = chromeTabs[selectedTabIndex].id;
           if (selectedTabId != null) {
             handleGoToTab(selectedTabId);
+          }
+        }
+      });
+      handleKey(" ", e, () => {
+        if (selectedTabIndex != null) {
+          const selectedTabId = chromeTabs[selectedTabIndex].id;
+          if (selectedTabId != null) {
+            handleCreateTabAfter(selectedTabId);
           }
         }
       });
@@ -91,6 +101,7 @@ export default function TabTree({
     handleCloseTab,
     handleMoveTab,
     handleGoToTab,
+    handleCreateTabAfter,
     selectedTabIndex,
     setSelectedTabIndex
   ]);

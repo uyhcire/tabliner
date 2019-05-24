@@ -10,17 +10,19 @@ import { ChromeTab } from "ChromeTab";
 function MockChildComponent(props: {
   chromeTabs: Array<ChromeTab> | null;
   handleCloseTab(tabId: number): void;
+  handleCreateTabAfter(tabId: number): void;
 }): null {
   return null;
 }
 
 function MockComponent(): JSX.Element {
-  const { chromeTabs, handleCloseTab } = useChromeTabs();
+  const { chromeTabs, handleCloseTab, handleCreateTabAfter } = useChromeTabs();
 
   return (
     <MockChildComponent
       chromeTabs={chromeTabs}
       handleCloseTab={handleCloseTab}
+      handleCreateTabAfter={handleCreateTabAfter}
     />
   );
 }
@@ -39,6 +41,7 @@ interface MockChromeApi {
   tabs: {
     query: typeof chrome.tabs.query;
     remove: typeof chrome.tabs.remove;
+    create: typeof chrome.tabs.create;
     onMoved: MockEvent<TabMovedListener>;
     onRemoved: MockEvent<TabRemovedListener>;
   };
@@ -57,6 +60,7 @@ function getMockChromeTabsApi(tabs: Array<ChromeTab>): MockChromeApi {
         cb(tabs);
       },
       remove: jest.fn(),
+      create: jest.fn(),
       onMoved: {
         addListener: (cb: TabMovedListener) => {
           onMovedListeners.push(cb);
@@ -107,6 +111,19 @@ it("removes tabs", () => {
     .props()
     .handleCloseTab(CHROME_TABS[0].id);
   expect(chrome.tabs.remove).lastCalledWith(CHROME_TABS[0].id);
+});
+
+it("creates tabs", () => {
+  const wrapper = mount(<MockComponent />);
+  wrapper
+    .find(MockChildComponent)
+    .props()
+    .handleCreateTabAfter(CHROME_TABS[0].id);
+  expect(chrome.tabs.create).lastCalledWith({
+    windowId: CHROME_TABS[0].windowId,
+    // New tab is to the right of the first tab
+    index: 1
+  });
 });
 
 it("removes tabs from the list when they are closed", () => {

@@ -1,21 +1,22 @@
 import { mount } from "enzyme";
 import React from "react";
 
-import TabTree from "./TabTree";
+import TabTree, { TabTreeProps } from "./TabTree";
 import { TreeNode } from "@blueprintjs/core";
 import { CHROME_TABS } from "./fixtures";
 
+const DEFAULT_PROPS: TabTreeProps = {
+  chromeTabs: CHROME_TABS,
+  handleCloseTab: () => {},
+  handleMoveTab: () => {},
+  handleGoToTab: () => {},
+  handleCreateTabAfter: () => {},
+  selectedTabIndex: null,
+  setSelectedTabIndex: () => {}
+};
+
 it("renders", () => {
-  const wrapper = mount(
-    <TabTree
-      chromeTabs={CHROME_TABS}
-      handleCloseTab={() => {}}
-      handleMoveTab={() => {}}
-      handleGoToTab={() => {}}
-      selectedTabIndex={null}
-      setSelectedTabIndex={() => {}}
-    />
-  );
+  const wrapper = mount(<TabTree {...DEFAULT_PROPS} />);
   expect(wrapper.text()).toMatch(/Google/);
   expect(wrapper.text()).toMatch(/Yahoo/);
   expect(wrapper.text()).not.toMatch(/some random website/);
@@ -25,12 +26,9 @@ it("removes the selected tab on Backspace", () => {
   const mockHandleCloseTab = jest.fn();
   mount(
     <TabTree
-      chromeTabs={CHROME_TABS}
+      {...DEFAULT_PROPS}
       handleCloseTab={mockHandleCloseTab}
-      handleMoveTab={() => {}}
-      handleGoToTab={() => {}}
       selectedTabIndex={0}
-      setSelectedTabIndex={() => {}}
     />
   );
   document.dispatchEvent(new KeyboardEvent("keydown", { key: "Backspace" }));
@@ -42,11 +40,7 @@ describe("selection", () => {
     const mockSetSelectedTabIndex = jest.fn();
     const wrapper = mount(
       <TabTree
-        chromeTabs={CHROME_TABS}
-        handleCloseTab={() => {}}
-        handleMoveTab={() => {}}
-        handleGoToTab={() => {}}
-        selectedTabIndex={null}
+        {...DEFAULT_PROPS}
         setSelectedTabIndex={mockSetSelectedTabIndex}
       />
     );
@@ -70,10 +64,7 @@ describe("selection", () => {
       const mockSetSelectedTabIndex = jest.fn();
       mount(
         <TabTree
-          chromeTabs={CHROME_TABS}
-          handleCloseTab={() => {}}
-          handleMoveTab={() => {}}
-          handleGoToTab={() => {}}
+          {...DEFAULT_PROPS}
           selectedTabIndex={initialIndex}
           setSelectedTabIndex={mockSetSelectedTabIndex}
         />
@@ -92,10 +83,8 @@ describe("reordering tabs", () => {
       const mockSetSelectedTabIndex = jest.fn();
       mount(
         <TabTree
-          chromeTabs={CHROME_TABS}
-          handleCloseTab={() => {}}
+          {...DEFAULT_PROPS}
           handleMoveTab={mockHandleMoveTab}
-          handleGoToTab={() => {}}
           selectedTabIndex={initialIndex}
           setSelectedTabIndex={mockSetSelectedTabIndex}
         />
@@ -116,11 +105,8 @@ describe("reordering tabs", () => {
     const mockSetSelectedTabIndex = jest.fn();
     mount(
       <TabTree
-        chromeTabs={CHROME_TABS}
-        handleCloseTab={() => {}}
+        {...DEFAULT_PROPS}
         handleMoveTab={mockHandleMoveTab}
-        handleGoToTab={() => {}}
-        selectedTabIndex={null}
         setSelectedTabIndex={mockSetSelectedTabIndex}
       />
     );
@@ -136,10 +122,7 @@ it("clears selection when Escape is pressed", () => {
   const mockSetSelectedTabIndex = jest.fn();
   mount(
     <TabTree
-      chromeTabs={CHROME_TABS}
-      handleCloseTab={() => {}}
-      handleMoveTab={() => {}}
-      handleGoToTab={() => {}}
+      {...DEFAULT_PROPS}
       selectedTabIndex={0}
       setSelectedTabIndex={mockSetSelectedTabIndex}
     />
@@ -152,14 +135,24 @@ it("goes to the selected tab when Enter is pressed", () => {
   const mockHandleGoToTab = jest.fn();
   mount(
     <TabTree
-      chromeTabs={CHROME_TABS}
-      handleCloseTab={() => {}}
-      handleMoveTab={() => {}}
+      {...DEFAULT_PROPS}
       handleGoToTab={mockHandleGoToTab}
       selectedTabIndex={0}
-      setSelectedTabIndex={() => {}}
     />
   );
   document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
   expect(mockHandleGoToTab).lastCalledWith(CHROME_TABS[0].id);
+});
+
+it("creates a new tab after the selected tab when Space is pressed", () => {
+  const mockHandleCreateTabAfter = jest.fn();
+  mount(
+    <TabTree
+      {...DEFAULT_PROPS}
+      handleCreateTabAfter={mockHandleCreateTabAfter}
+      selectedTabIndex={0}
+    />
+  );
+  document.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
+  expect(mockHandleCreateTabAfter).lastCalledWith(CHROME_TABS[0].id);
 });
