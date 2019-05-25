@@ -17,6 +17,22 @@ interface TabMovedEvent {
   moveInfo: chrome.tabs.TabMoveInfo;
 }
 
+function reindexTabs(tabs: Array<ChromeTab>): Array<ChromeTab> {
+  const windowIds = new Set(tabs.map(tab => tab.windowId));
+  const maxIndexByWindow: { [windowId: number]: number } = {};
+  for (const windowId of windowIds) {
+    maxIndexByWindow[windowId] = 0;
+  }
+
+  const reindexedTabs = [];
+  for (const tab of tabs) {
+    const windowId = tab.windowId;
+    reindexedTabs.push({ ...tab, index: maxIndexByWindow[windowId] });
+    maxIndexByWindow[windowId] += 1;
+  }
+  return reindexedTabs;
+}
+
 type ChromeTabsAction = QueryReturned | TabRemovedEvent | TabMovedEvent;
 
 function findChromeTab(chromeTabs: Array<ChromeTab>, tabId: number): ChromeTab {
@@ -39,9 +55,11 @@ function reduceChromeTabs(
     return null;
   }
 
+  let newTabs: Array<ChromeTab>;
   switch (action.type) {
     case "TAB_REMOVED_EVENT":
-      return chromeTabs.filter(tab => tab.id !== action.tabId);
+      newTabs = chromeTabs.filter(tab => tab.id !== action.tabId);
+      break;
     case "TAB_MOVED_EVENT": {
       const { tabId, moveInfo } = action;
 
@@ -49,7 +67,7 @@ function reduceChromeTabs(
         throw new Error("A tab was moved but could not be found!");
       }
 
-      let newTabs = [
+      newTabs = [
         ...chromeTabs.slice(0, moveInfo.fromIndex),
         ...chromeTabs.slice(moveInfo.fromIndex + 1)
       ];
@@ -58,9 +76,12 @@ function reduceChromeTabs(
         chromeTabs[moveInfo.fromIndex],
         ...newTabs.slice(moveInfo.toIndex)
       ];
-      return newTabs.map((tab, index) => ({ ...tab, index }));
+      break;
     }
+    default:
+      throw new Error(`Unexpected action type ${action!.type}`);
   }
+  return reindexTabs(newTabs);
 }
 
 export function useChromeTabs(): {

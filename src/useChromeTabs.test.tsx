@@ -140,7 +140,7 @@ it("removes tabs from the list when they are closed", () => {
   });
   wrapper.update();
   expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
-    CHROME_TABS[1]
+    { ...CHROME_TABS[1], index: 0 }
   ]);
 });
 
