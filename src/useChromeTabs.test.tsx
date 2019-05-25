@@ -34,6 +34,9 @@ type TabRemovedListener = Parameters<
 type TabCreatedListener = Parameters<
   chrome.tabs.TabCreatedEvent["addListener"]
 >[0];
+type TabActivatedListener = Parameters<
+  chrome.tabs.TabActivatedEvent["addListener"]
+>[0];
 
 interface MockEvent<ListenerType> {
   addListener: (cb: ListenerType) => void;
@@ -48,6 +51,7 @@ interface MockChromeApi {
     onMoved: MockEvent<TabMovedListener>;
     onRemoved: MockEvent<TabRemovedListener>;
     onCreated: MockEvent<TabCreatedListener>;
+    onActivated: MockEvent<TabActivatedListener>;
   };
 }
 
@@ -58,6 +62,7 @@ declare let global: NodeJS.Global & {
 let onMovedListeners: Array<TabMovedListener>;
 let onRemovedListeners: Array<TabRemovedListener>;
 let onCreatedListeners: Array<TabCreatedListener>;
+let onActivatedListeners: Array<TabActivatedListener>;
 function getMockChromeTabsApi(tabs: Array<ChromeTab>): MockChromeApi {
   return {
     tabs: {
@@ -95,6 +100,16 @@ function getMockChromeTabsApi(tabs: Array<ChromeTab>): MockChromeApi {
             listener => listener !== cb
           );
         }
+      },
+      onActivated: {
+        addListener: (cb: TabActivatedListener) => {
+          onActivatedListeners.push(cb);
+        },
+        removeListener: (cb: TabActivatedListener) => {
+          onActivatedListeners = onActivatedListeners.filter(
+            listener => listener !== cb
+          );
+        }
       }
     }
   };
@@ -104,6 +119,7 @@ beforeEach(() => {
   onMovedListeners = [];
   onRemovedListeners = [];
   onCreatedListeners = [];
+  onActivatedListeners = [];
   global.chrome = getMockChromeTabsApi(CHROME_TABS);
 });
 
@@ -309,6 +325,22 @@ describe("responds to Tab API events", () => {
     expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
       ...CHROME_TABS,
       newTab
+    ]);
+  });
+
+  it("changes the active tab", () => {
+    const wrapper = mount(<MockComponent />);
+    expect(onActivatedListeners).toHaveLength(1);
+    act(() => {
+      onActivatedListeners[0]({
+        tabId: CHROME_TABS[1].id,
+        windowId: CHROME_TABS[1].windowId
+      });
+    });
+    wrapper.update();
+    expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
+      { ...CHROME_TABS[0], active: false },
+      { ...CHROME_TABS[1], active: true }
     ]);
   });
 });

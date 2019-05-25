@@ -22,6 +22,12 @@ interface TabCreatedEvent {
   tab: ChromeTab;
 }
 
+interface TabActivatedEvent {
+  type: "TAB_ACTIVATED_EVENT";
+  tabId: number;
+  windowId: number;
+}
+
 function reindexTabs(tabs: Array<ChromeTab>): Array<ChromeTab> {
   const windowIds = new Set(tabs.map(tab => tab.windowId));
   const maxIndexByWindow: { [windowId: number]: number } = {};
@@ -42,7 +48,8 @@ type ChromeTabsEvent =
   | QueryReturned
   | TabRemovedEvent
   | TabMovedEvent
-  | TabCreatedEvent;
+  | TabCreatedEvent
+  | TabActivatedEvent;
 
 function findChromeTab(chromeTabs: Array<ChromeTab>, tabId: number): ChromeTab {
   const tab = chromeTabs.find(tab => tab.id === tabId);
@@ -121,6 +128,21 @@ function reduceChromeTabs(
       }
       break;
     }
+    case "TAB_ACTIVATED_EVENT": {
+      const { tabId, windowId } = event;
+
+      newTabs = chromeTabs.map(tab => {
+        if (tab.id === tabId) {
+          return { ...tab, active: true };
+        } else if (tab.windowId === windowId) {
+          return { ...tab, active: false };
+        } else {
+          return tab;
+        }
+      });
+
+      break;
+    }
     default:
       throw new Error(`Unexpected event type ${event!.type}`);
   }
@@ -172,6 +194,18 @@ export function useChromeTabs(): {
 
     chrome.tabs.onCreated.addListener(handleTabCreated);
     return () => chrome.tabs.onCreated.removeListener(handleTabCreated);
+  }, []);
+
+  useEffect(() => {
+    function handleTabActivated({
+      tabId,
+      windowId
+    }: chrome.tabs.TabActiveInfo): void {
+      dispatch({ type: "TAB_ACTIVATED_EVENT", tabId, windowId });
+    }
+
+    chrome.tabs.onActivated.addListener(handleTabActivated);
+    return () => chrome.tabs.onActivated.removeListener(handleTabActivated);
   }, []);
 
   return {

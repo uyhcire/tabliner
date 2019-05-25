@@ -112,7 +112,9 @@ export default function TabTree({
         (tab, i): ITreeNode => ({
           id: tab.id != null ? String(tab.id) : `undefined-tab-id-${i}`,
           icon: <img src={tab.favIconUrl} height={20} width={20} />,
-          label: tab.title,
+          label: (
+            <span>{tab.active ? <strong>{tab.title}</strong> : tab.title}</span>
+          ),
           isSelected: i === selectedTabIndex
         })
       )}
