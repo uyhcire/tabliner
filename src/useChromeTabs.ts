@@ -33,7 +33,7 @@ function reindexTabs(tabs: Array<ChromeTab>): Array<ChromeTab> {
   return reindexedTabs;
 }
 
-type ChromeTabsAction = QueryReturned | TabRemovedEvent | TabMovedEvent;
+type ChromeTabsEvent = QueryReturned | TabRemovedEvent | TabMovedEvent;
 
 function findChromeTab(chromeTabs: Array<ChromeTab>, tabId: number): ChromeTab {
   const tab = chromeTabs.find(tab => tab.id === tabId);
@@ -45,10 +45,10 @@ function findChromeTab(chromeTabs: Array<ChromeTab>, tabId: number): ChromeTab {
 
 function reduceChromeTabs(
   chromeTabs: Array<ChromeTab> | null,
-  action: ChromeTabsAction
+  event: ChromeTabsEvent
 ): Array<ChromeTab> | null {
-  if (action.type === "QUERY_RETURNED") {
-    return action.tabs;
+  if (event.type === "QUERY_RETURNED") {
+    return event.tabs;
   }
 
   if (chromeTabs == null) {
@@ -56,12 +56,12 @@ function reduceChromeTabs(
   }
 
   let newTabs: Array<ChromeTab>;
-  switch (action.type) {
+  switch (event.type) {
     case "TAB_REMOVED_EVENT":
-      newTabs = chromeTabs.filter(tab => tab.id !== action.tabId);
+      newTabs = chromeTabs.filter(tab => tab.id !== event.tabId);
       break;
     case "TAB_MOVED_EVENT": {
-      const { tabId, moveInfo } = action;
+      const { tabId, moveInfo } = event;
 
       if (chromeTabs[moveInfo.fromIndex].id !== tabId) {
         throw new Error("A tab was moved but could not be found!");
@@ -79,7 +79,7 @@ function reduceChromeTabs(
       break;
     }
     default:
-      throw new Error(`Unexpected action type ${action!.type}`);
+      throw new Error(`Unexpected event type ${event!.type}`);
   }
   return reindexTabs(newTabs);
 }
