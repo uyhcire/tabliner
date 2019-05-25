@@ -1,16 +1,16 @@
 import { ChromeTab } from "./ChromeTab";
 
-export function makeChromeTabs(
-  tabInfos: Array<{ url: string; title: string }>
-): Array<ChromeTab & { id: number }> {
-  if (tabInfos.length === 0) {
-    throw new Error("At least one tab is required");
-  }
-
-  const tabs = tabInfos.map((tabInfo, i) => ({
-    id: i,
-    index: i,
-    windowId: 1,
+export function makeChromeTab(tabInfo: {
+  id: number;
+  index: number;
+  windowId: number;
+  url: string;
+  title: string;
+}): ChromeTab & { id: number } {
+  return {
+    id: tabInfo.id,
+    index: tabInfo.index,
+    windowId: tabInfo.windowId,
     selected: false,
     highlighted: false,
     active: false,
@@ -22,7 +22,25 @@ export function makeChromeTabs(
     favIconUrl: "https://example.com/favicon.ico",
     status: "complete",
     incognito: false
-  }));
+  };
+}
+
+export function makeChromeTabs(
+  tabInfos: Array<{ url: string; title: string }>
+): Array<ChromeTab & { id: number }> {
+  if (tabInfos.length === 0) {
+    throw new Error("At least one tab is required");
+  }
+
+  const tabs = tabInfos.map((tabInfo, i) =>
+    makeChromeTab({
+      id: i,
+      index: i,
+      windowId: 1,
+      url: tabInfo.url,
+      title: tabInfo.title
+    })
+  );
 
   tabs[0].selected = true;
   tabs[0].highlighted = true;

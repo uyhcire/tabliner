@@ -17,6 +17,11 @@ interface TabMovedEvent {
   moveInfo: chrome.tabs.TabMoveInfo;
 }
 
+interface TabCreatedEvent {
+  type: "TAB_CREATED_EVENT";
+  tab: ChromeTab;
+}
+
 function reindexTabs(tabs: Array<ChromeTab>): Array<ChromeTab> {
   const windowIds = new Set(tabs.map(tab => tab.windowId));
   const maxIndexByWindow: { [windowId: number]: number } = {};
@@ -33,7 +38,11 @@ function reindexTabs(tabs: Array<ChromeTab>): Array<ChromeTab> {
   return reindexedTabs;
 }
 
-type ChromeTabsEvent = QueryReturned | TabRemovedEvent | TabMovedEvent;
+type ChromeTabsEvent =
+  | QueryReturned
+  | TabRemovedEvent
+  | TabMovedEvent
+  | TabCreatedEvent;
 
 function findChromeTab(chromeTabs: Array<ChromeTab>, tabId: number): ChromeTab {
   const tab = chromeTabs.find(tab => tab.id === tabId);
@@ -78,6 +87,40 @@ function reduceChromeTabs(
       ];
       break;
     }
+    case "TAB_CREATED_EVENT": {
+      const { tab: newTab } = event;
+
+      // If there's an existing window to put the tab in, find where to put it
+      let indexToInsertAt = -1;
+      if (newTab.index > 0) {
+        const indexToInsertAfter = chromeTabs.findIndex(
+          tab =>
+            tab.index === newTab.index - 1 && tab.windowId === newTab.windowId
+        );
+        if (indexToInsertAfter !== -1) {
+          indexToInsertAt = indexToInsertAfter + 1;
+        }
+      } else {
+        indexToInsertAt = chromeTabs.findIndex(
+          tab => tab.index === 0 && tab.windowId === newTab.windowId
+        );
+      }
+
+      if (indexToInsertAt !== -1) {
+        newTabs = [
+          ...chromeTabs.slice(0, indexToInsertAt),
+          newTab,
+          ...chromeTabs.slice(indexToInsertAt)
+        ];
+      } else {
+        // If there's no existing window for the tab, put it at the end
+        if (newTab.index !== 0) {
+          throw new Error("Expected tab in new window to have index 0");
+        }
+        newTabs = [...chromeTabs, newTab];
+      }
+      break;
+    }
     default:
       throw new Error(`Unexpected event type ${event!.type}`);
   }
@@ -120,6 +163,15 @@ export function useChromeTabs(): {
 
     chrome.tabs.onMoved.addListener(handleTabMoved);
     return () => chrome.tabs.onMoved.removeListener(handleTabMoved);
+  }, []);
+
+  useEffect(() => {
+    function handleTabCreated(tab: ChromeTab): void {
+      dispatch({ type: "TAB_CREATED_EVENT", tab });
+    }
+
+    chrome.tabs.onCreated.addListener(handleTabCreated);
+    return () => chrome.tabs.onCreated.removeListener(handleTabCreated);
   }, []);
 
   return {
