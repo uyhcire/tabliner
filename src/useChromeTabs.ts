@@ -129,7 +129,12 @@ export function useChromeTabs(): {
       //
       // Note: if the tab is pinned, this creates an unpinned tab
       // after the rightmost pinned tab.
-      chrome.tabs.create({ windowId: tab.windowId, index: tab.index + 1 });
+      chrome.tabs.create(
+        { windowId: tab.windowId, index: tab.index + 1 },
+        () => {
+          chrome.windows.update(tab.windowId, { focused: true });
+        }
+      );
     }
   };
 }

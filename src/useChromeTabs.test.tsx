@@ -119,11 +119,14 @@ it("creates tabs", () => {
     .find(MockChildComponent)
     .props()
     .handleCreateTabAfter(CHROME_TABS[0].id);
-  expect(chrome.tabs.create).lastCalledWith({
-    windowId: CHROME_TABS[0].windowId,
-    // New tab is to the right of the first tab
-    index: 1
-  });
+  expect(chrome.tabs.create).lastCalledWith(
+    {
+      windowId: CHROME_TABS[0].windowId,
+      // New tab is to the right of the first tab
+      index: 1
+    },
+    expect.any(Function)
+  );
 });
 
 it("removes tabs from the list when they are closed", () => {
