@@ -291,6 +291,26 @@ describe("responds to Tab API events", () => {
       newTab
     ]);
   });
+
+  it("creates a tab in a new window", () => {
+    const wrapper = mount(<MockComponent />);
+    expect(onCreatedListeners).toHaveLength(1);
+    const newTab: ChromeTab = makeChromeTab({
+      id: 1234,
+      index: 0,
+      windowId: 1234,
+      url: "https://example.com",
+      title: "Example"
+    });
+    act(() => {
+      onCreatedListeners[0](newTab);
+    });
+    wrapper.update();
+    expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
+      ...CHROME_TABS,
+      newTab
+    ]);
+  });
 });
 
 afterEach(() => {
