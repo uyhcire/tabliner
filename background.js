@@ -21,3 +21,11 @@ chrome.tabs.onRemoved.addListener(function(tabId) {
     extensionTabId = null;
   }
 });
+
+// Allow the extension page to get the ID of its own tab
+// https://stackoverflow.com/a/45600887
+chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
+  if (msg.type === "GET_TAB_ID") {
+    sendResponse(sender.tab.id);
+  }
+});
