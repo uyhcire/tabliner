@@ -169,8 +169,6 @@ export function reduceTablinerState(
   state: TablinerState,
   action: TablinerAction
 ): TablinerState {
-  console.log(action);
-
   const chromeTabs = reduceChromeTabs(state.chromeTabs, action);
   let selectedTabIndex = reduceSelectedTabIndex(state.selectedTabIndex, action);
 
