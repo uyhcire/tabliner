@@ -5,7 +5,7 @@ import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
 
 import TabTree from "./TabTree";
-import { useChromeTabs } from "./useChromeTabs";
+import { useTablinerState } from "./useTablinerState";
 
 function App(): JSX.Element | null {
   const {
@@ -16,7 +16,7 @@ function App(): JSX.Element | null {
     handleMoveTab,
     handleGoToTab,
     handleCreateTabAfter
-  } = useChromeTabs();
+  } = useTablinerState();
 
   return (
     <div>

@@ -2,7 +2,7 @@ import { mount } from "enzyme";
 import React from "react";
 import { act } from "react-dom/test-utils";
 
-import { useChromeTabs } from "./useChromeTabs";
+import { useTablinerState } from "./useTablinerState";
 import { CHROME_TABS, makeChromeTabs, makeChromeTab } from "./fixtures";
 import { ChromeTab } from "ChromeTab";
 
@@ -16,7 +16,11 @@ function MockChildComponent(props: {
 }
 
 function MockComponent(): JSX.Element {
-  const { chromeTabs, handleCloseTab, handleCreateTabAfter } = useChromeTabs();
+  const {
+    chromeTabs,
+    handleCloseTab,
+    handleCreateTabAfter
+  } = useTablinerState();
 
   return (
     <MockChildComponent

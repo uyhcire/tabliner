@@ -12,7 +12,7 @@ function findChromeTab(chromeTabs: Array<ChromeTab>, tabId: number): ChromeTab {
   return tab;
 }
 
-export function useChromeTabs(): {
+export function useTablinerState(): {
   chromeTabs: Array<ChromeTab> | null;
   selectedTabIndex: number | null;
   setSelectedTabIndex(index: number | null): void;
