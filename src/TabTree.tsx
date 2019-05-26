@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { Tree, ITreeNode } from "@blueprintjs/core";
 import scrollIntoView from "scroll-into-view-if-needed";
 
