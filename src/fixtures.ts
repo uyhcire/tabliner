@@ -53,3 +53,22 @@ export const CHROME_TABS: Array<ChromeTab & { id: number }> = makeChromeTabs([
   { url: "https://google.com", title: "Google" },
   { url: "https://yahoo.com", title: "Yahoo" }
 ]);
+
+export const CHROME_WINDOWS: Array<chrome.windows.Window> = [
+  {
+    id: 1,
+    focused: true,
+    type: "normal",
+    state: "normal",
+    incognito: false,
+    alwaysOnTop: false
+  },
+  {
+    id: 2,
+    focused: false,
+    type: "normal",
+    state: "normal",
+    incognito: false,
+    alwaysOnTop: false
+  }
+];

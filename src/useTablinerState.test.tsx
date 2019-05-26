@@ -5,7 +5,11 @@ import { act } from "react-dom/test-utils";
 import { useTablinerState } from "./useTablinerState";
 import { CHROME_TABS, makeChromeTabs, makeChromeTab } from "./fixtures";
 import { ChromeTab } from "ChromeTab";
-import { MockEvent } from "./listeners/MockEvent";
+import {
+  ChromeApiListeners,
+  mockChromeApi,
+  teardownChromeApiMock
+} from "mock-chrome-api/mockChromeApi";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function MockChildComponent(props: {
@@ -32,113 +36,9 @@ function MockComponent(): JSX.Element {
   );
 }
 
-type TabMovedListener = Parameters<chrome.tabs.TabMovedEvent["addListener"]>[0];
-type TabRemovedListener = Parameters<
-  chrome.tabs.TabRemovedEvent["addListener"]
->[0];
-type TabCreatedListener = Parameters<
-  chrome.tabs.TabCreatedEvent["addListener"]
->[0];
-type TabActivatedListener = Parameters<
-  chrome.tabs.TabActivatedEvent["addListener"]
->[0];
-type WindowFocusChangedListener = Parameters<
-  chrome.windows.WindowIdEvent["addListener"]
->[0];
-
-interface MockChromeApi {
-  runtime: {
-    sendMessage: typeof chrome.runtime.sendMessage;
-  };
-  tabs: {
-    query: typeof chrome.tabs.query;
-    remove: typeof chrome.tabs.remove;
-    create: typeof chrome.tabs.create;
-    onMoved: MockEvent<TabMovedListener>;
-    onRemoved: MockEvent<TabRemovedListener>;
-    onCreated: MockEvent<TabCreatedListener>;
-    onActivated: MockEvent<TabActivatedListener>;
-  };
-  windows: {
-    getAll: typeof chrome.windows.getAll;
-    onFocusChanged: MockEvent<WindowFocusChangedListener>;
-  };
-}
-
-declare let global: NodeJS.Global & {
-  chrome?: MockChromeApi;
-};
-
-let onMovedListeners: Array<TabMovedListener>;
-let onRemovedListeners: Array<TabRemovedListener>;
-let onCreatedListeners: Array<TabCreatedListener>;
-let onActivatedListeners: Array<TabActivatedListener>;
-function getMockChromeTabsApi(tabs: Array<ChromeTab>): MockChromeApi {
-  return {
-    runtime: { sendMessage: jest.fn() },
-    tabs: {
-      query: (_options: never, cb: (tabs: Array<ChromeTab>) => void) => {
-        cb(tabs);
-      },
-      remove: jest.fn(),
-      create: jest.fn(),
-      onMoved: {
-        addListener: (cb: TabMovedListener) => {
-          onMovedListeners.push(cb);
-        },
-        removeListener: (cb: TabMovedListener) => {
-          onMovedListeners = onMovedListeners.filter(
-            listener => listener !== cb
-          );
-        }
-      },
-      onRemoved: {
-        addListener: (cb: TabRemovedListener) => {
-          onRemovedListeners.push(cb);
-        },
-        removeListener: (cb: TabRemovedListener) => {
-          onRemovedListeners = onRemovedListeners.filter(
-            listener => listener !== cb
-          );
-        }
-      },
-      onCreated: {
-        addListener: (cb: TabCreatedListener) => {
-          onCreatedListeners.push(cb);
-        },
-        removeListener: (cb: TabCreatedListener) => {
-          onCreatedListeners = onCreatedListeners.filter(
-            listener => listener !== cb
-          );
-        }
-      },
-      onActivated: {
-        addListener: (cb: TabActivatedListener) => {
-          onActivatedListeners.push(cb);
-        },
-        removeListener: (cb: TabActivatedListener) => {
-          onActivatedListeners = onActivatedListeners.filter(
-            listener => listener !== cb
-          );
-        }
-      }
-    },
-    windows: {
-      getAll: jest.fn(),
-      onFocusChanged: {
-        addListener: () => {},
-        removeListener: () => {}
-      }
-    }
-  };
-}
-
+let listeners: ChromeApiListeners;
 beforeEach(() => {
-  onMovedListeners = [];
-  onRemovedListeners = [];
-  onCreatedListeners = [];
-  onActivatedListeners = [];
-  global.chrome = getMockChromeTabsApi(CHROME_TABS);
+  listeners = mockChromeApi(CHROME_TABS);
 });
 
 it("returns null initially", () => {
@@ -184,9 +84,8 @@ describe("performing actions", () => {
 describe("responds to Tab API events", () => {
   it("removes tabs from the list when they are closed", () => {
     const wrapper = mount(<MockComponent />);
-    expect(onRemovedListeners).toHaveLength(1);
     act(() => {
-      onRemovedListeners[0](CHROME_TABS[0].id, {
+      listeners.tabs.onRemoved[0](CHROME_TABS[0].id, {
         windowId: CHROME_TABS[0].windowId,
         isWindowClosing: false
       });
@@ -199,9 +98,8 @@ describe("responds to Tab API events", () => {
 
   it("reorders tabs in the list when they are moved", () => {
     const wrapper = mount(<MockComponent />);
-    expect(onMovedListeners).toHaveLength(1);
     act(() => {
-      onMovedListeners[0](CHROME_TABS[0].id, {
+      listeners.tabs.onMoved[0](CHROME_TABS[0].id, {
         fromIndex: 0,
         toIndex: 1,
         windowId: CHROME_TABS[0].windowId
@@ -223,9 +121,9 @@ describe("responds to Tab API events", () => {
       { title: "5", url: "https://example.com/5" },
       { title: "6", url: "https://example.com/6" }
     ]);
-    global.chrome = getMockChromeTabsApi(tabs);
+    teardownChromeApiMock();
+    listeners = mockChromeApi(tabs);
     const wrapper = mount(<MockComponent />);
-    expect(onMovedListeners).toHaveLength(1);
     act(() => {
       // I dragged the 1st tab to be 6th and recorded the events Chrome fired
       for (const [fromIndex, toIndex] of [
@@ -235,7 +133,7 @@ describe("responds to Tab API events", () => {
         [3, 4],
         [4, 5]
       ]) {
-        onMovedListeners[0](tabs[0].id, {
+        listeners.tabs.onMoved[0](tabs[0].id, {
           fromIndex,
           toIndex,
           windowId: tabs[0].windowId
@@ -258,9 +156,9 @@ describe("responds to Tab API events", () => {
       { title: "3", url: "https://example.com/3" },
       { title: "4", url: "https://example.com/4" }
     ]);
-    global.chrome = getMockChromeTabsApi(tabs);
+    teardownChromeApiMock();
+    listeners = mockChromeApi(tabs);
     const wrapper = mount(<MockComponent />);
-    expect(onMovedListeners).toHaveLength(1);
     act(() => {
       // I dragged a group of 2 tabs and recorded the events Chrome fired
       for (const [tabId, fromIndex, toIndex] of [
@@ -269,7 +167,7 @@ describe("responds to Tab API events", () => {
         [tabs[0].id, 1, 3],
         [tabs[1].id, 1, 3]
       ]) {
-        onMovedListeners[0](tabId, {
+        listeners.tabs.onMoved[0](tabId, {
           fromIndex,
           toIndex,
           windowId: tabs[0].windowId
@@ -287,7 +185,6 @@ describe("responds to Tab API events", () => {
 
   it("creates tabs at the beginning of a window", () => {
     const wrapper = mount(<MockComponent />);
-    expect(onCreatedListeners).toHaveLength(1);
     const newTab: ChromeTab = makeChromeTab({
       id: 1234,
       index: 0,
@@ -296,7 +193,7 @@ describe("responds to Tab API events", () => {
       title: "Example"
     });
     act(() => {
-      onCreatedListeners[0](newTab);
+      listeners.tabs.onCreated[0](newTab);
     });
     wrapper.update();
     expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
@@ -308,7 +205,6 @@ describe("responds to Tab API events", () => {
 
   it("creates tabs at the end of a window", () => {
     const wrapper = mount(<MockComponent />);
-    expect(onCreatedListeners).toHaveLength(1);
     const newTab: ChromeTab = makeChromeTab({
       id: 1234,
       index: 2,
@@ -317,7 +213,7 @@ describe("responds to Tab API events", () => {
       title: "Example"
     });
     act(() => {
-      onCreatedListeners[0](newTab);
+      listeners.tabs.onCreated[0](newTab);
     });
     wrapper.update();
     expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
@@ -328,7 +224,6 @@ describe("responds to Tab API events", () => {
 
   it("creates a tab in a new window", () => {
     const wrapper = mount(<MockComponent />);
-    expect(onCreatedListeners).toHaveLength(1);
     const newTab: ChromeTab = makeChromeTab({
       id: 1234,
       index: 0,
@@ -337,7 +232,7 @@ describe("responds to Tab API events", () => {
       title: "Example"
     });
     act(() => {
-      onCreatedListeners[0](newTab);
+      listeners.tabs.onCreated[0](newTab);
     });
     wrapper.update();
     expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
@@ -348,9 +243,8 @@ describe("responds to Tab API events", () => {
 
   it("changes the active tab", () => {
     const wrapper = mount(<MockComponent />);
-    expect(onActivatedListeners.length).toBeLessThanOrEqual(2);
     act(() => {
-      onActivatedListeners[0]({
+      listeners.tabs.onActivated[0]({
         tabId: CHROME_TABS[1].id,
         windowId: CHROME_TABS[1].windowId
       });
@@ -364,5 +258,5 @@ describe("responds to Tab API events", () => {
 });
 
 afterEach(() => {
-  delete global.chrome;
+  teardownChromeApiMock();
 });

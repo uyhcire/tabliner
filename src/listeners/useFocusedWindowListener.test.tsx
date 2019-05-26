@@ -2,8 +2,13 @@ import { mount } from "enzyme";
 import React, { useState } from "react";
 import { act } from "react-dom/test-utils";
 
-import { MockEvent } from "./MockEvent";
 import { useFocusedWindowListener } from "./useFocusedWindowListener";
+import {
+  ChromeApiListeners,
+  mockChromeApi,
+  teardownChromeApiMock
+} from "../mock-chrome-api/mockChromeApi";
+import { CHROME_TABS, CHROME_WINDOWS } from "../fixtures";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function MockChildComponent(props: { focusedWindowId: number | null }): null {
@@ -21,60 +26,9 @@ function MockComponent(): JSX.Element {
   return <MockChildComponent focusedWindowId={focusedWindowId} />;
 }
 
-type WindowFocusChangedListener = Parameters<
-  chrome.windows.WindowIdEvent["addListener"]
->[0];
-
-interface MockChromeApi {
-  windows: {
-    getAll: (callback: (windows: Array<chrome.windows.Window>) => void) => void;
-    onFocusChanged: MockEvent<WindowFocusChangedListener>;
-  };
-}
-
-declare let global: NodeJS.Global & {
-  chrome?: MockChromeApi;
-};
-
-const CHROME_WINDOWS: Array<chrome.windows.Window> = [
-  {
-    id: 1,
-    focused: true,
-    type: "normal",
-    state: "normal",
-    incognito: false,
-    alwaysOnTop: false
-  },
-  {
-    id: 2,
-    focused: false,
-    type: "normal",
-    state: "normal",
-    incognito: false,
-    alwaysOnTop: false
-  }
-];
-
-let onFocusChangedListeners: Array<WindowFocusChangedListener>;
+let listeners: ChromeApiListeners;
 beforeEach(() => {
-  onFocusChangedListeners = [];
-  global.chrome = {
-    windows: {
-      getAll(callback: (windows: Array<chrome.windows.Window>) => void): void {
-        callback(CHROME_WINDOWS);
-      },
-      onFocusChanged: {
-        addListener: (cb: WindowFocusChangedListener) => {
-          onFocusChangedListeners.push(cb);
-        },
-        removeListener: (cb: WindowFocusChangedListener) => {
-          onFocusChangedListeners = onFocusChangedListeners.filter(
-            listener => listener !== cb
-          );
-        }
-      }
-    }
-  };
+  listeners = mockChromeApi(CHROME_TABS);
 });
 
 it("responds to focus change", () => {
@@ -84,9 +38,8 @@ it("responds to focus change", () => {
     CHROME_WINDOWS[0].id
   );
 
-  expect(onFocusChangedListeners).toHaveLength(1);
   act(() => {
-    onFocusChangedListeners[0](CHROME_WINDOWS[1].id);
+    listeners.windows.onFocusChanged[0](CHROME_WINDOWS[1].id);
   });
   wrapper.update();
   expect(wrapper.find(MockChildComponent).props().focusedWindowId).toEqual(
@@ -95,5 +48,5 @@ it("responds to focus change", () => {
 });
 
 afterEach(() => {
-  delete global.chrome;
+  teardownChromeApiMock();
 });
