@@ -12,6 +12,23 @@ function findChromeTab(chromeTabs: Array<ChromeTab>, tabId: number): ChromeTab {
   return tab;
 }
 
+function assertTabsAreInOrder(tabs: Array<ChromeTab>): void {
+  for (let i = 0; i < tabs.length - 1; i++) {
+    if (
+      tabs[i].windowId === tabs[i + 1].windowId &&
+      tabs[i].index + 1 !== tabs[i + 1].index
+    ) {
+      throw new Error("Expected tabs in the same window to be contiguous");
+    }
+    if (
+      (i === 0 && tabs[i].index !== 0) ||
+      (tabs[i + 1].windowId !== tabs[i].windowId && tabs[i + 1].index !== 0)
+    ) {
+      throw new Error("Expected the first tab in a window to have index 0");
+    }
+  }
+}
+
 export function useTablinerState(): {
   chromeTabs: Array<ChromeTab> | null;
   focusedWindowId: number | null;
@@ -38,8 +55,10 @@ export function useTablinerState(): {
   useEffect((): void => {
     chrome.tabs.query(
       {},
-      (tabs: Array<ChromeTab>): void =>
-        dispatch({ type: "QUERY_RETURNED", tabs })
+      (tabs: Array<ChromeTab>): void => {
+        assertTabsAreInOrder(tabs);
+        dispatch({ type: "QUERY_RETURNED", tabs });
+      }
     );
   }, []);
 
