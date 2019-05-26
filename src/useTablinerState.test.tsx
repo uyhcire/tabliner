@@ -247,6 +247,24 @@ describe("responds to Tab API events", () => {
     ]);
   });
 
+  it("updates tabs", () => {
+    const wrapper = mount(<MockComponent />);
+
+    act(() => {
+      listeners.tabs.onUpdated[0](
+        CHROME_TABS[0].id,
+        {},
+        { ...CHROME_TABS[0], title: "new title !" }
+      );
+    });
+    wrapper.update();
+
+    const newChromeTabs = wrapper.find(MockChildComponent).props().chromeTabs;
+    expect(newChromeTabs && newChromeTabs[0]).toMatchObject({
+      title: "new title !"
+    });
+  });
+
   it("changes the active tab", () => {
     const wrapper = mount(<MockComponent />);
     act(() => {

@@ -21,6 +21,11 @@ interface TabCreatedEvent {
   tab: ChromeTab;
 }
 
+interface TabUpdatedEvent {
+  type: "TAB_UPDATED_EVENT";
+  tab: ChromeTab;
+}
+
 interface TabActivatedEvent {
   type: "TAB_ACTIVATED_EVENT";
   tabId: number;
@@ -32,6 +37,7 @@ type ChromeTabsEvent =
   | TabRemovedEvent
   | TabMovedEvent
   | TabCreatedEvent
+  | TabUpdatedEvent
   | TabActivatedEvent;
 
 export type TablinerAction =
@@ -124,6 +130,13 @@ export function reduceChromeTabs(
         }
         newTabs = [...chromeTabs, newTab];
       }
+      break;
+    }
+    case "TAB_UPDATED_EVENT": {
+      const { tab: newTab } = event;
+      newTabs = chromeTabs.map(oldTab =>
+        oldTab.id === newTab.id ? newTab : oldTab
+      );
       break;
     }
     case "TAB_ACTIVATED_EVENT": {

@@ -73,6 +73,19 @@ export function useTablinerState(): {
   }, []);
 
   useEffect(() => {
+    function handleTabUpdated(
+      _tabId: number,
+      _changeInfo: chrome.tabs.TabChangeInfo,
+      tab: ChromeTab
+    ): void {
+      dispatch({ type: "TAB_UPDATED_EVENT", tab });
+    }
+
+    chrome.tabs.onUpdated.addListener(handleTabUpdated);
+    return () => chrome.tabs.onUpdated.removeListener(handleTabUpdated);
+  }, []);
+
+  useEffect(() => {
     function handleTabActivated({
       tabId,
       windowId
