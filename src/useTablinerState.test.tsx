@@ -5,6 +5,7 @@ import { act } from "react-dom/test-utils";
 import { useTablinerState } from "./useTablinerState";
 import { CHROME_TABS, makeChromeTabs, makeChromeTab } from "./fixtures";
 import { ChromeTab } from "ChromeTab";
+import { MockEvent } from "./listeners/MockEvent";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function MockChildComponent(props: {
@@ -44,11 +45,6 @@ type TabActivatedListener = Parameters<
 type WindowFocusChangedListener = Parameters<
   chrome.windows.WindowIdEvent["addListener"]
 >[0];
-
-interface MockEvent<ListenerType> {
-  addListener: (cb: ListenerType) => void;
-  removeListener: (cb: ListenerType) => void;
-}
 
 interface MockChromeApi {
   runtime: {

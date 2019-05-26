@@ -10,7 +10,7 @@ export function useFocusedWindowListener(
       return;
     }
 
-    chrome.windows.getAll({}, windows => {
+    chrome.windows.getAll(windows => {
       const focusedWindows = windows.filter(window => window.focused);
       if (focusedWindows.length > 1) {
         throw new Error("Expected at most 1 window to be focused!");
