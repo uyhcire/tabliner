@@ -14,6 +14,8 @@ function findChromeTab(chromeTabs: Array<ChromeTab>, tabId: number): ChromeTab {
 
 export function useTablinerState(): {
   chromeTabs: Array<ChromeTab> | null;
+  focusedWindowId: number | null;
+  focusedTabId: number | null;
   selectedTabIndex: number | null;
   setSelectedTabIndex(index: number | null): void;
   handleCloseTab(tabId: number): void;
@@ -22,7 +24,7 @@ export function useTablinerState(): {
   handleCreateTabAfter(tabId: number): void;
 } {
   const [
-    { chromeTabs, focusedWindowId, selectedTabIndex },
+    { chromeTabs, focusedWindowId, focusedTabId, selectedTabIndex },
     dispatch
   ] = useReducer(reduceTablinerState, {
     chromeTabs: null,
@@ -100,6 +102,8 @@ export function useTablinerState(): {
 
   return {
     chromeTabs,
+    focusedWindowId,
+    focusedTabId,
     selectedTabIndex,
     setSelectedTabIndex(index: number | null): void {
       dispatch({ type: "SET_SELECTED_INDEX", index });

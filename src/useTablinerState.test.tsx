@@ -14,6 +14,8 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function MockChildComponent(props: {
   chromeTabs: Array<ChromeTab> | null;
+  focusedWindowId: number | null;
+  focusedTabId: number | null;
   handleCloseTab(tabId: number): void;
   handleCreateTabAfter(tabId: number): void;
 }): null {
@@ -23,6 +25,8 @@ function MockChildComponent(props: {
 function MockComponent(): JSX.Element {
   const {
     chromeTabs,
+    focusedWindowId,
+    focusedTabId,
     handleCloseTab,
     handleCreateTabAfter
   } = useTablinerState();
@@ -30,6 +34,8 @@ function MockComponent(): JSX.Element {
   return (
     <MockChildComponent
       chromeTabs={chromeTabs}
+      focusedWindowId={focusedWindowId}
+      focusedTabId={focusedTabId}
       handleCloseTab={handleCloseTab}
       handleCreateTabAfter={handleCreateTabAfter}
     />
@@ -254,6 +260,32 @@ describe("responds to Tab API events", () => {
       { ...CHROME_TABS[0], active: false },
       { ...CHROME_TABS[1], active: true }
     ]);
+  });
+
+  it("sets focusedWindowId and focusedTabId", () => {
+    const wrapper = mount(<MockComponent />);
+
+    act(() => {
+      listeners.windows.onFocusChanged.forEach(listener =>
+        listener(CHROME_TABS[1].windowId)
+      );
+    });
+    wrapper.update();
+
+    act(() => {
+      listeners.tabs.onActivated.forEach(listener =>
+        listener({
+          tabId: CHROME_TABS[1].id,
+          windowId: CHROME_TABS[1].windowId
+        })
+      );
+    });
+    wrapper.update();
+
+    expect(wrapper.find(MockChildComponent).props()).toMatchObject({
+      focusedWindowId: CHROME_TABS[1].windowId,
+      focusedTabId: CHROME_TABS[1].id
+    });
   });
 });
 
