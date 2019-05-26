@@ -18,10 +18,7 @@ function MockChildComponent(props: { focusedWindowId: number | null }): null {
 function MockComponent(): JSX.Element {
   const [focusedWindowId, setFocusedWindowId] = useState<number | null>(null);
 
-  function setFocusedWindow(windowId: number | null): void {
-    setFocusedWindowId(windowId);
-  }
-  useFocusedWindowListener(focusedWindowId, setFocusedWindow);
+  useFocusedWindowListener(focusedWindowId, setFocusedWindowId);
 
   return <MockChildComponent focusedWindowId={focusedWindowId} />;
 }

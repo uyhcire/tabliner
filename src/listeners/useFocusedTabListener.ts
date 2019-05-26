@@ -38,7 +38,7 @@ export function useFocusedTabListener(
         tab => tab.windowId === windowId && tab.active
       );
       const newFocusedTabId = newFocusedTab && newFocusedTab.id;
-      if (newFocusedTabId) {
+      if (newFocusedTabId != null) {
         setFocusedTab(newFocusedTabId);
       }
     }

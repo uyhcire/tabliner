@@ -1,5 +1,24 @@
 import { ChromeTab } from "./ChromeTab";
 
+export const CHROME_WINDOWS: Array<chrome.windows.Window> = [
+  {
+    id: 1,
+    focused: true,
+    type: "normal",
+    state: "normal",
+    incognito: false,
+    alwaysOnTop: false
+  },
+  {
+    id: 2,
+    focused: false,
+    type: "normal",
+    state: "normal",
+    incognito: false,
+    alwaysOnTop: false
+  }
+];
+
 export function makeChromeTab(tabInfo: {
   id: number;
   index: number;
@@ -36,7 +55,7 @@ export function makeChromeTabs(
     makeChromeTab({
       id: i,
       index: i,
-      windowId: 1,
+      windowId: CHROME_WINDOWS[0].id,
       url: tabInfo.url,
       title: tabInfo.title
     })
@@ -53,22 +72,3 @@ export const CHROME_TABS: Array<ChromeTab & { id: number }> = makeChromeTabs([
   { url: "https://google.com", title: "Google" },
   { url: "https://yahoo.com", title: "Yahoo" }
 ]);
-
-export const CHROME_WINDOWS: Array<chrome.windows.Window> = [
-  {
-    id: 1,
-    focused: true,
-    type: "normal",
-    state: "normal",
-    incognito: false,
-    alwaysOnTop: false
-  },
-  {
-    id: 2,
-    focused: false,
-    type: "normal",
-    state: "normal",
-    incognito: false,
-    alwaysOnTop: false
-  }
-];
