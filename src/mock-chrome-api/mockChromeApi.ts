@@ -19,6 +19,12 @@ type TabUpdatedListener = Parameters<
 type TabActivatedListener = Parameters<
   chrome.tabs.TabActivatedEvent["addListener"]
 >[0];
+type TabDetachedListener = Parameters<
+  chrome.tabs.TabDetachedEvent["addListener"]
+>[0];
+type TabAttachedListener = Parameters<
+  chrome.tabs.TabAttachedEvent["addListener"]
+>[0];
 type WindowFocusChangedListener = Parameters<
   chrome.windows.WindowIdEvent["addListener"]
 >[0];
@@ -36,6 +42,8 @@ export interface MockChromeApi {
     onCreated: MockEvent<TabCreatedListener>;
     onUpdated: MockEvent<TabUpdatedListener>;
     onActivated: MockEvent<TabActivatedListener>;
+    onDetached: MockEvent<TabDetachedListener>;
+    onAttached: MockEvent<TabAttachedListener>;
   };
   windows: {
     getAll(callback: (windows: Array<chrome.windows.Window>) => void): void;
@@ -54,6 +62,8 @@ export interface ChromeApiListeners {
     onCreated: Array<TabCreatedListener>;
     onUpdated: Array<TabUpdatedListener>;
     onActivated: Array<TabActivatedListener>;
+    onDetached: Array<TabDetachedListener>;
+    onAttached: Array<TabAttachedListener>;
   };
   windows: {
     onFocusChanged: Array<WindowFocusChangedListener>;
@@ -73,7 +83,9 @@ export function mockChromeApi(tabs: Array<ChromeTab>): ChromeApiListeners {
       onRemoved: [],
       onCreated: [],
       onUpdated: [],
-      onActivated: []
+      onActivated: [],
+      onDetached: [],
+      onAttached: []
     },
     windows: {
       onFocusChanged: []
@@ -134,6 +146,26 @@ export function mockChromeApi(tabs: Array<ChromeTab>): ChromeApiListeners {
         },
         removeListener: (cb: TabActivatedListener) => {
           listeners.tabs.onActivated = listeners.tabs.onActivated.filter(
+            listener => listener !== cb
+          );
+        }
+      },
+      onDetached: {
+        addListener: (cb: TabDetachedListener) => {
+          listeners.tabs.onDetached.push(cb);
+        },
+        removeListener: (cb: TabDetachedListener) => {
+          listeners.tabs.onDetached = listeners.tabs.onDetached.filter(
+            listener => listener !== cb
+          );
+        }
+      },
+      onAttached: {
+        addListener: (cb: TabAttachedListener) => {
+          listeners.tabs.onAttached.push(cb);
+        },
+        removeListener: (cb: TabAttachedListener) => {
+          listeners.tabs.onAttached = listeners.tabs.onAttached.filter(
             listener => listener !== cb
           );
         }

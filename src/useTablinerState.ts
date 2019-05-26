@@ -45,6 +45,7 @@ export function useTablinerState(): {
     dispatch
   ] = useReducer(reduceTablinerState, {
     chromeTabs: null,
+    detachedTabs: [],
     ownTabId: null,
     focusedWindowId: null,
     focusedTabId: null,
@@ -115,6 +116,30 @@ export function useTablinerState(): {
     chrome.tabs.onActivated.addListener(handleTabActivated);
     return () => chrome.tabs.onActivated.removeListener(handleTabActivated);
   }, []);
+
+  useEffect(() => {
+    function handleTabDetached(
+      tabId: number,
+      detachInfo: chrome.tabs.TabDetachInfo
+    ): void {
+      dispatch({ type: "TAB_DETACHED_EVENT", tabId, detachInfo });
+    }
+
+    chrome.tabs.onDetached.addListener(handleTabDetached);
+    return () => chrome.tabs.onDetached.removeListener(handleTabDetached);
+  });
+
+  useEffect(() => {
+    function handleTabAttached(
+      tabId: number,
+      attachInfo: chrome.tabs.TabAttachInfo
+    ): void {
+      dispatch({ type: "TAB_ATTACHED_EVENT", tabId, attachInfo });
+    }
+
+    chrome.tabs.onAttached.addListener(handleTabAttached);
+    return () => chrome.tabs.onAttached.removeListener(handleTabAttached);
+  });
 
   useEffect((): void => {
     chrome.runtime.sendMessage({ type: "GET_TAB_ID" }, (tabId: number) => {
