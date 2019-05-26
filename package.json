@@ -17,6 +17,7 @@
     "parcel-bundler": "^1.6.2",
     "react": "^16.8",
     "react-dom": "^16.8",
+    "scroll-into-view-if-needed": "^2.2.20",
     "src": "^1.1.2",
     "tslib": "^1.9.3"
   },
