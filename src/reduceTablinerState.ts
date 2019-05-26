@@ -214,7 +214,13 @@ export function reduceTablinerState(
      *
      * This way, if you change your mind, it's easy to go back.
      */
-    if (chromeTabs != null && action.tabId === ownTabId) {
+    if (
+      chromeTabs != null &&
+      action.tabId === ownTabId &&
+      // If Tabliner is already open, we don't want to mess with the user's selection.
+      // So don't auto-select the Tabliner tab, even if it was the most recently focused.
+      previousFocusedTabId !== ownTabId
+    ) {
       const previousFocusedTabIndex = chromeTabs.findIndex(
         tab => tab.id === previousFocusedTabId
       );
