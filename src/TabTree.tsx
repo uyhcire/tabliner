@@ -120,8 +120,8 @@ export default function TabTree({
         if (selectedNode) {
           scrollIntoView(selectedNode, {
             scrollMode: "if-needed",
-            block: "nearest",
-            inline: "nearest"
+            block: "center",
+            inline: "center"
           });
         }
       }}
