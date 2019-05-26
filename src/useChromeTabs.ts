@@ -1,6 +1,8 @@
 import { useEffect, useReducer } from "react";
 import { ChromeTab } from "./ChromeTab";
 import { reduceTablinerState } from "./reduceTablinerState";
+import { useFocusedWindowListener } from "./useFocusedWindowListener";
+import { useFocusedTabListener } from "./useFocusedTabListener";
 
 function findChromeTab(chromeTabs: Array<ChromeTab>, tabId: number): ChromeTab {
   const tab = chromeTabs.find(tab => tab.id === tabId);
@@ -19,13 +21,16 @@ export function useChromeTabs(): {
   handleGoToTab(tabId: number): void;
   handleCreateTabAfter(tabId: number): void;
 } {
-  const [{ chromeTabs, selectedTabIndex }, dispatch] = useReducer(
-    reduceTablinerState,
-    {
-      chromeTabs: null,
-      selectedTabIndex: null
-    }
-  );
+  const [
+    { chromeTabs, focusedWindowId, selectedTabIndex },
+    dispatch
+  ] = useReducer(reduceTablinerState, {
+    chromeTabs: null,
+    ownTabId: null,
+    focusedWindowId: null,
+    focusedTabId: null,
+    selectedTabIndex: null
+  });
 
   // Load tabs
   useEffect((): void => {
@@ -76,6 +81,22 @@ export function useChromeTabs(): {
     chrome.tabs.onActivated.addListener(handleTabActivated);
     return () => chrome.tabs.onActivated.removeListener(handleTabActivated);
   }, []);
+
+  useEffect((): void => {
+    chrome.runtime.sendMessage({ type: "GET_TAB_ID" }, (tabId: number) => {
+      dispatch({ type: "OWN_TAB_ID_FETCHED", tabId });
+    });
+  }, []);
+
+  function handleWindowFocused(windowId: number | null): void {
+    dispatch({ type: "WINDOW_FOCUSED", windowId });
+  }
+  useFocusedWindowListener(focusedWindowId, handleWindowFocused);
+
+  function handleTabFocused(tabId: number): void {
+    dispatch({ type: "TAB_FOCUSED", tabId });
+  }
+  useFocusedTabListener(chromeTabs, focusedWindowId, handleTabFocused);
 
   return {
     chromeTabs,

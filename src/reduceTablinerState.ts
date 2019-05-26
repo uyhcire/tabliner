@@ -36,6 +36,9 @@ type ChromeTabsEvent =
 
 export type TablinerAction =
   | ChromeTabsEvent
+  | { type: "OWN_TAB_ID_FETCHED"; tabId: number }
+  | { type: "WINDOW_FOCUSED"; windowId: number | null }
+  | { type: "TAB_FOCUSED"; tabId: number }
   | { type: "SET_SELECTED_INDEX"; index: number | null };
 
 function reindexTabs(tabs: Array<ChromeTab>): Array<ChromeTab> {
@@ -156,6 +159,9 @@ export function reduceSelectedTabIndex(
 
 export interface TablinerState {
   chromeTabs: Array<ChromeTab> | null;
+  ownTabId: number | null;
+  focusedWindowId: number | null;
+  focusedTabId: number | null;
   selectedTabIndex: number | null;
 }
 
@@ -163,6 +169,8 @@ export function reduceTablinerState(
   state: TablinerState,
   action: TablinerAction
 ): TablinerState {
+  console.log(action);
+
   const chromeTabs = reduceChromeTabs(state.chromeTabs, action);
   let selectedTabIndex = reduceSelectedTabIndex(state.selectedTabIndex, action);
 
@@ -175,5 +183,41 @@ export function reduceTablinerState(
     selectedTabIndex = chromeTabs.length - 1;
   }
 
-  return { chromeTabs, selectedTabIndex };
+  let ownTabId = state.ownTabId;
+  if (action.type === "OWN_TAB_ID_FETCHED") {
+    ownTabId = action.tabId;
+  }
+
+  let focusedWindowId = state.focusedWindowId;
+  if (action.type === "WINDOW_FOCUSED") {
+    focusedWindowId = action.windowId;
+  }
+
+  let focusedTabId = state.focusedTabId;
+  if (action.type === "TAB_FOCUSED") {
+    const previousFocusedTabId = focusedTabId;
+    focusedTabId = action.tabId;
+
+    /*
+     * If Tabliner's tab is focused, select the tab you were previously using.
+     *
+     * This way, if you change your mind, it's easy to go back.
+     */
+    if (chromeTabs != null && action.tabId === ownTabId) {
+      const previousFocusedTabIndex = chromeTabs.findIndex(
+        tab => tab.id === previousFocusedTabId
+      );
+      if (previousFocusedTabIndex !== -1) {
+        selectedTabIndex = previousFocusedTabIndex;
+      }
+    }
+  }
+
+  return {
+    chromeTabs,
+    ownTabId,
+    focusedWindowId,
+    focusedTabId,
+    selectedTabIndex
+  };
 }
