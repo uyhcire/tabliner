@@ -1,7 +1,10 @@
 import { useEffect } from "react";
 
-import { ChromeTab } from "./ChromeTab";
+import { ChromeTab } from "../ChromeTab";
 
+/**
+ * Listen for when the "focused" tab changes (the active tab in the focused window).
+ */
 export function useFocusedTabListener(
   chromeTabs: Array<ChromeTab> | null,
   focusedWindowId: number | null,
