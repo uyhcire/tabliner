@@ -7,7 +7,6 @@ import "@blueprintjs/core/lib/css/blueprint.css";
 import { ChromeTab } from "./ChromeTab";
 import TabTree from "./TabTree";
 import { useChromeTabs } from "./useChromeTabs";
-import { useSelectedTabIndex } from "./useSelectedTabIndex";
 
 function useFocusedWindowId(): number | null {
   const [focusedWindowId, setFocusedWindowId] = useState<number | null>(null);
@@ -63,7 +62,7 @@ function useOwnTabId(): number | null {
 function usePreviousSelectedTabIndexIfExtensionFocused(
   chromeTabs: Array<ChromeTab> | null,
   ownTabId: number | null,
-  setSelectedTabIndex: React.Dispatch<React.SetStateAction<number | null>>
+  setSelectedTabIndex: (index: number | null) => void
 ): void {
   const [focusedTabId, setFocusedTabId] = useState<number | null>(null);
   const focusedWindowId = useFocusedWindowId();
@@ -131,14 +130,13 @@ function usePreviousSelectedTabIndexIfExtensionFocused(
 function App(): JSX.Element | null {
   const {
     chromeTabs,
+    selectedTabIndex,
+    setSelectedTabIndex,
     handleCloseTab,
     handleMoveTab,
     handleGoToTab,
     handleCreateTabAfter
   } = useChromeTabs();
-  const [selectedTabIndex, setSelectedTabIndex] = useSelectedTabIndex(
-    chromeTabs && chromeTabs.length
-  );
 
   const ownTabId = useOwnTabId();
   usePreviousSelectedTabIndexIfExtensionFocused(

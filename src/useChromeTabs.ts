@@ -1,55 +1,6 @@
 import { useEffect, useReducer } from "react";
 import { ChromeTab } from "./ChromeTab";
-
-interface QueryReturned {
-  type: "QUERY_RETURNED";
-  tabs: Array<ChromeTab>;
-}
-
-interface TabRemovedEvent {
-  type: "TAB_REMOVED_EVENT";
-  tabId: number;
-}
-
-interface TabMovedEvent {
-  type: "TAB_MOVED_EVENT";
-  tabId: number;
-  moveInfo: chrome.tabs.TabMoveInfo;
-}
-
-interface TabCreatedEvent {
-  type: "TAB_CREATED_EVENT";
-  tab: ChromeTab;
-}
-
-interface TabActivatedEvent {
-  type: "TAB_ACTIVATED_EVENT";
-  tabId: number;
-  windowId: number;
-}
-
-function reindexTabs(tabs: Array<ChromeTab>): Array<ChromeTab> {
-  const windowIds = new Set(tabs.map(tab => tab.windowId));
-  const maxIndexByWindow: { [windowId: number]: number } = {};
-  for (const windowId of windowIds) {
-    maxIndexByWindow[windowId] = 0;
-  }
-
-  const reindexedTabs = [];
-  for (const tab of tabs) {
-    const windowId = tab.windowId;
-    reindexedTabs.push({ ...tab, index: maxIndexByWindow[windowId] });
-    maxIndexByWindow[windowId] += 1;
-  }
-  return reindexedTabs;
-}
-
-type ChromeTabsEvent =
-  | QueryReturned
-  | TabRemovedEvent
-  | TabMovedEvent
-  | TabCreatedEvent
-  | TabActivatedEvent;
+import { reduceTablinerState } from "./reduceTablinerState";
 
 function findChromeTab(chromeTabs: Array<ChromeTab>, tabId: number): ChromeTab {
   const tab = chromeTabs.find(tab => tab.id === tabId);
@@ -59,104 +10,22 @@ function findChromeTab(chromeTabs: Array<ChromeTab>, tabId: number): ChromeTab {
   return tab;
 }
 
-function reduceChromeTabs(
-  chromeTabs: Array<ChromeTab> | null,
-  event: ChromeTabsEvent
-): Array<ChromeTab> | null {
-  if (event.type === "QUERY_RETURNED") {
-    return event.tabs;
-  }
-
-  if (chromeTabs == null) {
-    return null;
-  }
-
-  let newTabs: Array<ChromeTab>;
-  switch (event.type) {
-    case "TAB_REMOVED_EVENT":
-      newTabs = chromeTabs.filter(tab => tab.id !== event.tabId);
-      break;
-    case "TAB_MOVED_EVENT": {
-      const { tabId, moveInfo } = event;
-
-      if (chromeTabs[moveInfo.fromIndex].id !== tabId) {
-        throw new Error("A tab was moved but could not be found!");
-      }
-
-      newTabs = [
-        ...chromeTabs.slice(0, moveInfo.fromIndex),
-        ...chromeTabs.slice(moveInfo.fromIndex + 1)
-      ];
-      newTabs = [
-        ...newTabs.slice(0, moveInfo.toIndex),
-        chromeTabs[moveInfo.fromIndex],
-        ...newTabs.slice(moveInfo.toIndex)
-      ];
-      break;
-    }
-    case "TAB_CREATED_EVENT": {
-      const { tab: newTab } = event;
-
-      // If there's an existing window to put the tab in, find where to put it
-      let indexToInsertAt = -1;
-      if (newTab.index > 0) {
-        const indexToInsertAfter = chromeTabs.findIndex(
-          tab =>
-            tab.index === newTab.index - 1 && tab.windowId === newTab.windowId
-        );
-        if (indexToInsertAfter !== -1) {
-          indexToInsertAt = indexToInsertAfter + 1;
-        }
-      } else {
-        indexToInsertAt = chromeTabs.findIndex(
-          tab => tab.index === 0 && tab.windowId === newTab.windowId
-        );
-      }
-
-      if (indexToInsertAt !== -1) {
-        newTabs = [
-          ...chromeTabs.slice(0, indexToInsertAt),
-          newTab,
-          ...chromeTabs.slice(indexToInsertAt)
-        ];
-      } else {
-        // If there's no existing window for the tab, put it at the end
-        if (newTab.index !== 0) {
-          throw new Error("Expected tab in new window to have index 0");
-        }
-        newTabs = [...chromeTabs, newTab];
-      }
-      break;
-    }
-    case "TAB_ACTIVATED_EVENT": {
-      const { tabId, windowId } = event;
-
-      newTabs = chromeTabs.map(tab => {
-        if (tab.id === tabId) {
-          return { ...tab, active: true };
-        } else if (tab.windowId === windowId) {
-          return { ...tab, active: false };
-        } else {
-          return tab;
-        }
-      });
-
-      break;
-    }
-    default:
-      throw new Error(`Unexpected event type ${event!.type}`);
-  }
-  return reindexTabs(newTabs);
-}
-
 export function useChromeTabs(): {
   chromeTabs: Array<ChromeTab> | null;
+  selectedTabIndex: number | null;
+  setSelectedTabIndex(index: number | null): void;
   handleCloseTab(tabId: number): void;
   handleMoveTab(tabId: number, newIndex: number): void;
   handleGoToTab(tabId: number): void;
   handleCreateTabAfter(tabId: number): void;
 } {
-  const [chromeTabs, dispatch] = useReducer(reduceChromeTabs, null);
+  const [{ chromeTabs, selectedTabIndex }, dispatch] = useReducer(
+    reduceTablinerState,
+    {
+      chromeTabs: null,
+      selectedTabIndex: null
+    }
+  );
 
   // Load tabs
   useEffect((): void => {
@@ -210,6 +79,10 @@ export function useChromeTabs(): {
 
   return {
     chromeTabs,
+    selectedTabIndex,
+    setSelectedTabIndex(index: number | null): void {
+      dispatch({ type: "SET_SELECTED_INDEX", index });
+    },
     handleCloseTab(tabId: number): void {
       chrome.tabs.remove(tabId);
     },

@@ -18,7 +18,7 @@ export interface TabTreeProps {
   handleGoToTab(tabId: number): void;
   handleCreateTabAfter(tabId: number): void;
   selectedTabIndex: number | null;
-  setSelectedTabIndex: React.Dispatch<React.SetStateAction<number | null>>;
+  setSelectedTabIndex(index: number | null): void;
 }
 
 export default function TabTree({
