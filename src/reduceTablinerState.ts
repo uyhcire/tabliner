@@ -135,18 +135,31 @@ export function reduceChromeTabs(
       case "TAB_MOVED_EVENT": {
         const { tabId, moveInfo } = event;
 
-        if (chromeTabs[moveInfo.fromIndex].id !== tabId) {
+        // Translate from moveInfo to chromeTabs indexes.
+        // When there are multiple windows, the indexes a tab moves between in chromeTabs
+        // may be different from moveInfo.fromIndex and moveInfo.toIndex.
+        const fromIndex = chromeTabs.findIndex(
+          tab =>
+            tab.windowId === moveInfo.windowId &&
+            tab.index === moveInfo.fromIndex
+        );
+        const toIndex = chromeTabs.findIndex(
+          tab =>
+            tab.windowId === moveInfo.windowId && tab.index === moveInfo.toIndex
+        );
+
+        if (chromeTabs[fromIndex].id !== tabId) {
           throw new Error("A tab was moved but could not be found!");
         }
 
         newTabs = [
-          ...chromeTabs.slice(0, moveInfo.fromIndex),
-          ...chromeTabs.slice(moveInfo.fromIndex + 1)
+          ...chromeTabs.slice(0, fromIndex),
+          ...chromeTabs.slice(fromIndex + 1)
         ];
         newTabs = [
-          ...newTabs.slice(0, moveInfo.toIndex),
-          chromeTabs[moveInfo.fromIndex],
-          ...newTabs.slice(moveInfo.toIndex)
+          ...newTabs.slice(0, toIndex),
+          chromeTabs[fromIndex],
+          ...newTabs.slice(toIndex)
         ];
         break;
       }

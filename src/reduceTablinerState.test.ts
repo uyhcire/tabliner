@@ -58,6 +58,43 @@ describe("reduceForTabInserted", () => {
   );
 });
 
+it("handles moving tabs when there are multiple windows", () => {
+  // 2 windows with 2 tabs each
+  let oldTabs = makeChromeTabs([
+    { title: "0", url: "https://example.com" },
+    { title: "1", url: "https://example.com" },
+    { title: "2", url: "https://example.com" },
+    { title: "3", url: "https://example.com" }
+  ]);
+  oldTabs = [
+    { ...oldTabs[0], windowId: 1, index: 0 },
+    { ...oldTabs[1], windowId: 1, index: 1 },
+    { ...oldTabs[2], windowId: 2, index: 0 },
+    { ...oldTabs[3], windowId: 2, index: 1 }
+  ];
+
+  const state: TablinerState = {
+    chromeTabs: oldTabs,
+    detachedTabs: [],
+    ownTabId: null,
+    focusedWindowId: null,
+    focusedTabId: null,
+    selectedTabIndex: null
+  };
+  const newState = reduceTablinerState(state, {
+    type: "TAB_MOVED_EVENT",
+    tabId: oldTabs[3].id,
+    moveInfo: { windowId: 2, fromIndex: 1, toIndex: 0 }
+  });
+
+  expect(newState.chromeTabs).toEqual([
+    oldTabs[0],
+    oldTabs[1],
+    { ...oldTabs[3], index: 0 },
+    { ...oldTabs[2], index: 1 }
+  ]);
+});
+
 test.each([[-1, 0], [0, 0], [1, 1], [2, 1]])(
   "sets the tab index but stays within bounds (selecting index %j, expecting index %j)",
   (indexToSelect, expectedIndex) => {
