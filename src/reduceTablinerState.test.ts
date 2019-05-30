@@ -3,27 +3,13 @@ import {
   reduceTablinerState,
   reduceForTabInserted
 } from "./reduceTablinerState";
-import { CHROME_TABS, makeChromeTabs, makeChromeTab } from "./fixtures";
-import { ChromeTab } from "./ChromeTab";
+import {
+  CHROME_TABS,
+  makeChromeTab,
+  TWO_WINDOWS_TWO_TABS_EACH
+} from "./fixtures";
 
 describe("reduceForTabInserted", () => {
-  let oldTabs: Array<ChromeTab>;
-  beforeEach(() => {
-    // 2 windows with 2 tabs each
-    oldTabs = makeChromeTabs([
-      { title: "0", url: "https://example.com" },
-      { title: "1", url: "https://example.com" },
-      { title: "2", url: "https://example.com" },
-      { title: "3", url: "https://example.com" }
-    ]);
-    oldTabs = [
-      { ...oldTabs[0], windowId: 1, index: 0 },
-      { ...oldTabs[1], windowId: 1, index: 1 },
-      { ...oldTabs[2], windowId: 2, index: 0 },
-      { ...oldTabs[3], windowId: 2, index: 1 }
-    ];
-  });
-
   test.each([
     { windowId: 1, index: 0, finalPosition: 0 },
     { windowId: 1, index: 1, finalPosition: 1 },
@@ -51,7 +37,7 @@ describe("reduceForTabInserted", () => {
         url: "https://example.com"
       });
 
-      const newTabs = reduceForTabInserted(oldTabs, newTab);
+      const newTabs = reduceForTabInserted(TWO_WINDOWS_TWO_TABS_EACH, newTab);
 
       expect(newTabs.findIndex(tab => tab.id === 1234)).toEqual(finalPosition);
     }
@@ -59,22 +45,8 @@ describe("reduceForTabInserted", () => {
 });
 
 it("handles moving tabs when there are multiple windows", () => {
-  // 2 windows with 2 tabs each
-  let oldTabs = makeChromeTabs([
-    { title: "0", url: "https://example.com" },
-    { title: "1", url: "https://example.com" },
-    { title: "2", url: "https://example.com" },
-    { title: "3", url: "https://example.com" }
-  ]);
-  oldTabs = [
-    { ...oldTabs[0], windowId: 1, index: 0 },
-    { ...oldTabs[1], windowId: 1, index: 1 },
-    { ...oldTabs[2], windowId: 2, index: 0 },
-    { ...oldTabs[3], windowId: 2, index: 1 }
-  ];
-
   const state: TablinerState = {
-    chromeTabs: oldTabs,
+    chromeTabs: TWO_WINDOWS_TWO_TABS_EACH,
     detachedTabs: [],
     ownTabId: null,
     focusedWindowId: null,
@@ -83,15 +55,15 @@ it("handles moving tabs when there are multiple windows", () => {
   };
   const newState = reduceTablinerState(state, {
     type: "TAB_MOVED_EVENT",
-    tabId: oldTabs[3].id,
+    tabId: TWO_WINDOWS_TWO_TABS_EACH[3].id,
     moveInfo: { windowId: 2, fromIndex: 1, toIndex: 0 }
   });
 
   expect(newState.chromeTabs).toEqual([
-    oldTabs[0],
-    oldTabs[1],
-    { ...oldTabs[3], index: 0 },
-    { ...oldTabs[2], index: 1 }
+    TWO_WINDOWS_TWO_TABS_EACH[0],
+    TWO_WINDOWS_TWO_TABS_EACH[1],
+    { ...TWO_WINDOWS_TWO_TABS_EACH[3], index: 0 },
+    { ...TWO_WINDOWS_TWO_TABS_EACH[2], index: 1 }
   ]);
 });
 

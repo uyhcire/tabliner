@@ -169,7 +169,22 @@ export function useTablinerState(): {
       chrome.tabs.remove(tabId);
     },
     handleMoveTab(tabId: number, newIndex: number): void {
-      chrome.tabs.move(tabId, { index: newIndex });
+      if (chromeTabs == null || newIndex < 0 || newIndex >= chromeTabs.length) {
+        return;
+      }
+
+      const currentIndex = chromeTabs.findIndex(tab => tab.id === tabId);
+      if (currentIndex === -1) {
+        throw new Error("Tab not found");
+      }
+
+      const tab = chromeTabs[currentIndex];
+      const tabAtNewIndex = chromeTabs[newIndex];
+      if (tabAtNewIndex.windowId !== tab.windowId) {
+        return;
+      }
+
+      chrome.tabs.move(tabId, { index: tabAtNewIndex.index });
     },
     handleGoToTab(tabId: number): void {
       if (chromeTabs == null) {

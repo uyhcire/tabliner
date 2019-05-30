@@ -72,3 +72,17 @@ export const CHROME_TABS: Array<ChromeTab & { id: number }> = makeChromeTabs([
   { url: "https://google.com", title: "Google" },
   { url: "https://yahoo.com", title: "Yahoo" }
 ]);
+
+export let TWO_WINDOWS_TWO_TABS_EACH: Array<ChromeTab & { id: number }>;
+TWO_WINDOWS_TWO_TABS_EACH = makeChromeTabs([
+  { title: "0", url: "https://example.com" },
+  { title: "1", url: "https://example.com" },
+  { title: "2", url: "https://example.com" },
+  { title: "3", url: "https://example.com" }
+]);
+TWO_WINDOWS_TWO_TABS_EACH = [
+  { ...TWO_WINDOWS_TWO_TABS_EACH[0], windowId: 1, index: 0 },
+  { ...TWO_WINDOWS_TWO_TABS_EACH[1], windowId: 1, index: 1 },
+  { ...TWO_WINDOWS_TWO_TABS_EACH[2], windowId: 2, index: 0 },
+  { ...TWO_WINDOWS_TWO_TABS_EACH[3], windowId: 2, index: 1 }
+];

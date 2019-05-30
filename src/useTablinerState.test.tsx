@@ -3,7 +3,12 @@ import React from "react";
 import { act } from "react-dom/test-utils";
 
 import { useTablinerState } from "./useTablinerState";
-import { CHROME_TABS, makeChromeTabs, makeChromeTab } from "./fixtures";
+import {
+  CHROME_TABS,
+  makeChromeTabs,
+  makeChromeTab,
+  TWO_WINDOWS_TWO_TABS_EACH
+} from "./fixtures";
 import { ChromeTab } from "ChromeTab";
 import {
   ChromeApiListeners,
@@ -17,6 +22,7 @@ function MockChildComponent(props: {
   focusedWindowId: number | null;
   focusedTabId: number | null;
   handleCloseTab(tabId: number): void;
+  handleMoveTab(tabId: number, newIndex: number): void;
   handleCreateTabAfter(tabId: number): void;
 }): null {
   return null;
@@ -28,6 +34,7 @@ function MockComponent(): JSX.Element {
     focusedWindowId,
     focusedTabId,
     handleCloseTab,
+    handleMoveTab,
     handleCreateTabAfter
   } = useTablinerState();
 
@@ -37,6 +44,7 @@ function MockComponent(): JSX.Element {
       focusedWindowId={focusedWindowId}
       focusedTabId={focusedTabId}
       handleCloseTab={handleCloseTab}
+      handleMoveTab={handleMoveTab}
       handleCreateTabAfter={handleCreateTabAfter}
     />
   );
@@ -68,6 +76,29 @@ describe("performing actions", () => {
       .props()
       .handleCloseTab(CHROME_TABS[0].id);
     expect(chrome.tabs.remove).lastCalledWith(CHROME_TABS[0].id);
+  });
+
+  it("moves tabs", () => {
+    const wrapper = mount(<MockComponent />);
+    wrapper
+      .find(MockChildComponent)
+      .props()
+      .handleMoveTab(CHROME_TABS[0].id, 1);
+    expect(chrome.tabs.move).lastCalledWith(CHROME_TABS[0].id, { index: 1 });
+  });
+
+  it("moves tabs when there is more than one window", () => {
+    teardownChromeApiMock();
+    listeners = mockChromeApi(TWO_WINDOWS_TWO_TABS_EACH);
+    const wrapper = mount(<MockComponent />);
+    wrapper
+      .find(MockChildComponent)
+      .props()
+      .handleMoveTab(TWO_WINDOWS_TWO_TABS_EACH[3].id, 2);
+    expect(chrome.tabs.move).lastCalledWith(TWO_WINDOWS_TWO_TABS_EACH[3].id, {
+      // Should move to index 0 (position in window 2) instead of 2 (position across all tabs from all windows)
+      index: 0
+    });
   });
 
   it("creates tabs", () => {

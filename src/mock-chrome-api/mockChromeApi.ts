@@ -36,6 +36,7 @@ export interface MockChromeApi {
   tabs: {
     query: typeof chrome.tabs.query;
     remove: typeof chrome.tabs.remove;
+    move: typeof chrome.tabs.move;
     create: typeof chrome.tabs.create;
     onMoved: MockEvent<TabMovedListener>;
     onRemoved: MockEvent<TabRemovedListener>;
@@ -99,6 +100,7 @@ export function mockChromeApi(tabs: Array<ChromeTab>): ChromeApiListeners {
         cb(tabs);
       },
       remove: jest.fn(),
+      move: jest.fn(),
       create: jest.fn(),
       onMoved: {
         addListener: (cb: TabMovedListener) => {
