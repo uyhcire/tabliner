@@ -1,5 +1,62 @@
-import { TablinerState, reduceTablinerState } from "./reduceTablinerState";
-import { CHROME_TABS } from "./fixtures";
+import {
+  TablinerState,
+  reduceTablinerState,
+  reduceForTabInserted
+} from "./reduceTablinerState";
+import { CHROME_TABS, makeChromeTabs, makeChromeTab } from "./fixtures";
+import { ChromeTab } from "./ChromeTab";
+
+describe("reduceForTabInserted", () => {
+  let oldTabs: Array<ChromeTab>;
+  beforeEach(() => {
+    // 2 windows with 2 tabs each
+    oldTabs = makeChromeTabs([
+      { title: "0", url: "https://example.com" },
+      { title: "1", url: "https://example.com" },
+      { title: "2", url: "https://example.com" },
+      { title: "3", url: "https://example.com" }
+    ]);
+    oldTabs = [
+      { ...oldTabs[0], windowId: 1, index: 0 },
+      { ...oldTabs[1], windowId: 1, index: 1 },
+      { ...oldTabs[2], windowId: 2, index: 0 },
+      { ...oldTabs[3], windowId: 2, index: 1 }
+    ];
+  });
+
+  test.each([
+    { windowId: 1, index: 0, finalPosition: 0 },
+    { windowId: 1, index: 1, finalPosition: 1 },
+    { windowId: 1, index: 2, finalPosition: 2 },
+    { windowId: 2, index: 0, finalPosition: 2 },
+    { windowId: 2, index: 1, finalPosition: 3 },
+    { windowId: 2, index: 2, finalPosition: 4 },
+    { windowId: 3, index: 0, finalPosition: 4 }
+  ])(
+    "inserts a new tab (%j)",
+    ({
+      windowId,
+      index,
+      finalPosition
+    }: {
+      windowId: number;
+      index: number;
+      finalPosition: number;
+    }) => {
+      const newTab = makeChromeTab({
+        id: 1234,
+        windowId,
+        index,
+        title: "new",
+        url: "https://example.com"
+      });
+
+      const newTabs = reduceForTabInserted(oldTabs, newTab);
+
+      expect(newTabs.findIndex(tab => tab.id === 1234)).toEqual(finalPosition);
+    }
+  );
+});
 
 test.each([[-1, 0], [0, 0], [1, 1], [2, 1]])(
   "sets the tab index but stays within bounds (selecting index %j, expecting index %j)",

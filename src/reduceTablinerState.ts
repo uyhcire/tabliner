@@ -77,7 +77,7 @@ function reindexTabs(tabs: Array<ChromeTab>): Array<ChromeTab> {
   return reindexedTabs;
 }
 
-function reduceForTabCreatedOrAttached(
+export function reduceForTabInserted(
   chromeTabs: Array<ChromeTab>,
   newTab: ChromeTab
 ): Array<ChromeTab> {
@@ -152,7 +152,7 @@ export function reduceChromeTabs(
       }
       case "TAB_CREATED_EVENT": {
         const { tab: newTab } = event;
-        newTabs = reduceForTabCreatedOrAttached(chromeTabs, newTab);
+        newTabs = reduceForTabInserted(chromeTabs, newTab);
         break;
       }
       case "TAB_UPDATED_EVENT": {
@@ -206,7 +206,7 @@ export function reduceChromeTabs(
           );
         }
         detachedTabs = detachedTabs.filter(tab => tab.id !== tabId);
-        newTabs = reduceForTabCreatedOrAttached(chromeTabs, {
+        newTabs = reduceForTabInserted(chromeTabs, {
           ...tabToAttach,
           windowId: attachInfo.newWindowId,
           index: attachInfo.newPosition
