@@ -4,6 +4,7 @@ import React from "react";
 import TabTree, { TabTreeProps } from "./TabTree";
 import { TreeNode } from "@blueprintjs/core";
 import { CHROME_TABS } from "./fixtures";
+import { findAllInRenderedTree } from "react-dom/test-utils";
 
 const DEFAULT_PROPS: TabTreeProps = {
   chromeTabs: CHROME_TABS,
@@ -45,6 +46,11 @@ describe("selection", () => {
       />
     );
     wrapper
+      // First window
+      .find(TreeNode)
+      .at(0)
+      // Second tab
+      .find(".bp3-tree-node-list")
       .find(TreeNode)
       .at(1)
       .find(".bp3-tree-node-label")

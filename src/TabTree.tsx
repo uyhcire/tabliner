@@ -12,6 +12,27 @@ function handleKey(key: string, e: KeyboardEvent, handler: () => void): void {
   }
 }
 
+function groupTabsByWindow(
+  chromeTabs: Array<ChromeTab>
+): Array<{ windowId: number; windowTabs: Array<ChromeTab> }> {
+  const tabsByWindowId: { [windowId: number]: Array<ChromeTab> } = {};
+  for (const tab of chromeTabs) {
+    if (!(tab.windowId in tabsByWindowId)) {
+      tabsByWindowId[tab.windowId] = [];
+    }
+    tabsByWindowId[tab.windowId].push(tab);
+  }
+
+  const orderedWindowIds: Set<number> = new Set(
+    chromeTabs.map(tab => tab.windowId)
+  );
+
+  return [...orderedWindowIds].map(windowId => ({
+    windowId,
+    windowTabs: tabsByWindowId[windowId]
+  }));
+}
+
 export interface TabTreeProps {
   chromeTabs: Array<ChromeTab>;
   handleCloseTab(tabId: number): void;
@@ -107,6 +128,8 @@ export default function TabTree({
     setSelectedTabIndex
   ]);
 
+  const groupedTabs = groupTabsByWindow(chromeTabs);
+
   return (
     <Tree
       ref={(treeInstance: Tree | null) => {
@@ -123,21 +146,54 @@ export default function TabTree({
           }
         }
       }}
-      contents={chromeTabs.map(
-        (tab, i): ITreeNode => ({
-          id: tab.id != null ? String(tab.id) : `undefined-tab-id-${i}`,
-          icon: <img src={tab.favIconUrl} height={20} width={20} />,
-          label: (
-            <span>{tab.active ? <strong>{tab.title}</strong> : tab.title}</span>
-          ),
-          isSelected: i === selectedTabIndex
-        })
-      )}
-      onNodeClick={(_node, nodePath) => {
-        if (nodePath.length !== 1) {
-          throw new Error("Expected tab list to be flat");
+      contents={(() => {
+        const windowTreeNodes = [];
+
+        let windowBaseTabIndex = 0;
+        for (const [
+          windowIndex,
+          { windowId, windowTabs }
+        ] of groupedTabs.entries()) {
+          windowTreeNodes.push({
+            id: windowId,
+            label: `Window ${windowIndex + 1}`,
+            isExpanded: true,
+            hasCaret: false,
+            childNodes: windowTabs.map(
+              (tab, windowTabIndex): ITreeNode => ({
+                id: tab.id != null ? String(tab.id) : `undefined-tab-id-${i}`,
+                icon: <img src={tab.favIconUrl} height={20} width={20} />,
+                label: (
+                  <span>
+                    {tab.active ? <strong>{tab.title}</strong> : tab.title}
+                  </span>
+                ),
+                isSelected:
+                  windowBaseTabIndex + windowTabIndex === selectedTabIndex
+              })
+            )
+          });
+
+          windowBaseTabIndex += windowTabs.length;
         }
-        setSelectedTabIndex(nodePath[0]);
+
+        return windowTreeNodes;
+      })()}
+      onNodeClick={(_node, nodePath) => {
+        if (nodePath.length === 2) {
+          const [windowIndex, tabIndex] = nodePath;
+
+          let windowBaseTabIndex = 0;
+          for (const { windowTabs } of groupedTabs.slice(0, windowIndex)) {
+            windowBaseTabIndex += windowTabs.length;
+          }
+
+          setSelectedTabIndex(windowBaseTabIndex + tabIndex);
+        } else if (nodePath.length === 1) {
+          // For now, do nothing if a window's tree node is clicked
+        } else {
+          throw new Error(`Unexpected node path of length ${nodePath.length}`);
+        }
       }}
     />
   );
