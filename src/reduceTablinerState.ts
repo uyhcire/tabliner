@@ -1,4 +1,6 @@
-import { ChromeTab } from "ChromeTab";
+import produce from "immer";
+
+import { ChromeTab } from "./ChromeTab";
 
 interface QueryReturned {
   type: "QUERY_RETURNED";
@@ -61,59 +63,48 @@ export type TablinerAction =
   | { type: "TAB_FOCUSED"; tabId: number }
   | { type: "SET_SELECTED_INDEX"; index: number | null };
 
-function reindexTabs(tabs: Array<ChromeTab>): Array<ChromeTab> {
-  const windowIds = new Set(tabs.map(tab => tab.windowId));
-  const maxIndexByWindow: { [windowId: number]: number } = {};
-  for (const windowId of windowIds) {
-    maxIndexByWindow[windowId] = 0;
-  }
+const reindexTabs = (tabs: Array<ChromeTab>): Array<ChromeTab> =>
+  produce(tabs, draft => {
+    for (let i = 0; i < draft.length; i++) {
+      if (i === 0 || draft[i - 1].windowId !== draft[i].windowId) {
+        draft[i].index = 0;
+      } else {
+        draft[i].index = draft[i - 1].index + 1;
+      }
+    }
+  });
 
-  const reindexedTabs = [];
-  for (const tab of tabs) {
-    const windowId = tab.windowId;
-    reindexedTabs.push({ ...tab, index: maxIndexByWindow[windowId] });
-    maxIndexByWindow[windowId] += 1;
-  }
-  return reindexedTabs;
-}
-
-export function reduceForTabInserted(
+export const reduceForTabInserted = (
   chromeTabs: Array<ChromeTab>,
   newTab: ChromeTab
-): Array<ChromeTab> {
-  let newTabs: Array<ChromeTab> = [];
-
-  // If there's an existing window to put the tab in, find where to put it
-  let indexToInsertAt = -1;
-  if (newTab.index > 0) {
-    const indexToInsertAfter = chromeTabs.findIndex(
-      tab => tab.index === newTab.index - 1 && tab.windowId === newTab.windowId
-    );
-    if (indexToInsertAfter !== -1) {
-      indexToInsertAt = indexToInsertAfter + 1;
+): Array<ChromeTab> =>
+  produce(chromeTabs, draft => {
+    // If there's an existing window to put the tab in, find where to put it
+    let indexToInsertAt = -1;
+    if (newTab.index > 0) {
+      const indexToInsertAfter = draft.findIndex(
+        tab =>
+          tab.index === newTab.index - 1 && tab.windowId === newTab.windowId
+      );
+      if (indexToInsertAfter !== -1) {
+        indexToInsertAt = indexToInsertAfter + 1;
+      }
+    } else {
+      indexToInsertAt = draft.findIndex(
+        tab => tab.index === 0 && tab.windowId === newTab.windowId
+      );
     }
-  } else {
-    indexToInsertAt = chromeTabs.findIndex(
-      tab => tab.index === 0 && tab.windowId === newTab.windowId
-    );
-  }
 
-  if (indexToInsertAt !== -1) {
-    newTabs = [
-      ...chromeTabs.slice(0, indexToInsertAt),
-      newTab,
-      ...chromeTabs.slice(indexToInsertAt)
-    ];
-  } else {
-    // If there's no existing window for the tab, put it at the end
-    if (newTab.index !== 0) {
-      throw new Error("Expected tab in new window to have index 0");
+    if (indexToInsertAt !== -1) {
+      draft.splice(indexToInsertAt, 0, newTab);
+    } else {
+      // If there's no existing window for the tab, put it at the end
+      if (newTab.index !== 0) {
+        throw new Error("Expected tab in new window to have index 0");
+      }
+      draft.push(newTab);
     }
-    newTabs = [...chromeTabs, newTab];
-  }
-
-  return newTabs;
-}
+  });
 
 export function reduceChromeTabs(
   {
