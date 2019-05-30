@@ -6,6 +6,7 @@ test.each([[-1, 0], [0, 0], [1, 1], [2, 1]])(
   (indexToSelect, expectedIndex) => {
     const state: TablinerState = {
       chromeTabs: CHROME_TABS,
+      detachedTabs: [],
       ownTabId: null,
       focusedWindowId: null,
       focusedTabId: null,
@@ -24,6 +25,7 @@ test.each([[-1, 0], [0, 0], [1, 1], [2, 1]])(
 it("auto-selects the previously focused tab if Tabliner's own tab is focused", () => {
   const state: TablinerState = {
     chromeTabs: CHROME_TABS,
+    detachedTabs: [],
     ownTabId: CHROME_TABS[1].id,
     focusedWindowId: CHROME_TABS[0].windowId,
     focusedTabId: CHROME_TABS[0].id,
@@ -44,6 +46,7 @@ it("auto-selects the previously focused tab if Tabliner's own tab is focused", (
 it("never auto-selects Tabliner's own tab", () => {
   const state: TablinerState = {
     chromeTabs: CHROME_TABS,
+    detachedTabs: [],
     ownTabId: CHROME_TABS[1].id,
     focusedWindowId: CHROME_TABS[1].windowId,
     focusedTabId: CHROME_TABS[1].id,

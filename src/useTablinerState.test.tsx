@@ -305,6 +305,31 @@ describe("responds to Tab API events", () => {
       focusedTabId: CHROME_TABS[1].id
     });
   });
+
+  it("detaches and re-attaches a tab", () => {
+    const wrapper = mount(<MockComponent />);
+
+    const windowId = CHROME_TABS[0].windowId;
+    act(() => {
+      listeners.tabs.onDetached[0](CHROME_TABS[0].id, {
+        oldWindowId: windowId,
+        oldPosition: 0
+      });
+    });
+    wrapper.update();
+    act(() => {
+      listeners.tabs.onAttached[0](CHROME_TABS[0].id, {
+        newWindowId: windowId,
+        newPosition: 1
+      });
+    });
+    wrapper.update();
+
+    expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
+      { ...CHROME_TABS[1], index: 0 },
+      { ...CHROME_TABS[0], index: 1 }
+    ]);
+  });
 });
 
 afterEach(() => {
