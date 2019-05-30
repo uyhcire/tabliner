@@ -3,7 +3,6 @@ import { Tree, ITreeNode } from "@blueprintjs/core";
 import scrollIntoView from "scroll-into-view-if-needed";
 
 import { ChromeTab } from "./ChromeTab";
-import { findDOMNode } from "react-dom";
 
 // Helper to make sure we call e.preventDefault() if and only if we handle the key
 function handleKey(key: string, e: KeyboardEvent, handler: () => void): void {
@@ -110,19 +109,18 @@ export default function TabTree({
 
   return (
     <Tree
-      ref={node => {
-        const selectedNode =
-          node &&
-          // eslint-disable-next-line react/no-find-dom-node
-          (findDOMNode(node) as Element).querySelector(
-            ".bp3-tree-node-selected"
-          );
-        if (selectedNode) {
-          scrollIntoView(selectedNode, {
-            scrollMode: "if-needed",
-            block: "center",
-            inline: "center"
-          });
+      ref={(treeInstance: Tree | null) => {
+        if (treeInstance && selectedTabIndex != null) {
+          const selectedTabId = chromeTabs[selectedTabIndex].id;
+          const selectedNode =
+            selectedTabId && treeInstance.getNodeContentElement(selectedTabId);
+          if (selectedNode) {
+            scrollIntoView(selectedNode, {
+              scrollMode: "if-needed",
+              block: "center",
+              inline: "center"
+            });
+          }
         }
       }}
       contents={chromeTabs.map(
