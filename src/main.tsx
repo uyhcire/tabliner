@@ -10,8 +10,10 @@ import { useTablinerState } from "./useTablinerState";
 function App(): JSX.Element | null {
   const {
     chromeTabs,
-    selectedTabIndex,
-    setSelectedTabIndex,
+    selectedNodePath,
+    setSelectedNodePath,
+    moveSelectedNodeUp,
+    moveSelectedNodeDown,
     handleCloseTab,
     handleMoveTab,
     handleGoToTab,
@@ -27,8 +29,10 @@ function App(): JSX.Element | null {
           handleMoveTab={handleMoveTab}
           handleGoToTab={handleGoToTab}
           handleCreateTabAfter={handleCreateTabAfter}
-          selectedTabIndex={selectedTabIndex}
-          setSelectedTabIndex={setSelectedTabIndex}
+          selectedNodePath={selectedNodePath}
+          setSelectedNodePath={setSelectedNodePath}
+          moveSelectedNodeUp={moveSelectedNodeUp}
+          moveSelectedNodeDown={moveSelectedNodeDown}
         />
       ) : null}
     </div>

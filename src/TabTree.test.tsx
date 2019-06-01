@@ -4,7 +4,6 @@ import React from "react";
 import TabTree, { TabTreeProps } from "./TabTree";
 import { TreeNode } from "@blueprintjs/core";
 import { CHROME_TABS } from "./fixtures";
-import { findAllInRenderedTree } from "react-dom/test-utils";
 
 const DEFAULT_PROPS: TabTreeProps = {
   chromeTabs: CHROME_TABS,
@@ -12,8 +11,10 @@ const DEFAULT_PROPS: TabTreeProps = {
   handleMoveTab: () => {},
   handleGoToTab: () => {},
   handleCreateTabAfter: () => {},
-  selectedTabIndex: null,
-  setSelectedTabIndex: () => {}
+  selectedNodePath: null,
+  setSelectedNodePath: () => {},
+  moveSelectedNodeUp: () => {},
+  moveSelectedNodeDown: () => {}
 };
 
 it("renders", () => {
@@ -29,7 +30,7 @@ it("removes the selected tab on Backspace", () => {
     <TabTree
       {...DEFAULT_PROPS}
       handleCloseTab={mockHandleCloseTab}
-      selectedTabIndex={0}
+      selectedNodePath={[0, 0]}
     />
   );
   document.dispatchEvent(new KeyboardEvent("keydown", { key: "Backspace" }));
@@ -38,11 +39,11 @@ it("removes the selected tab on Backspace", () => {
 
 describe("selection", () => {
   it("selects a tab when clicked", () => {
-    const mockSetSelectedTabIndex = jest.fn();
+    const mockSetSelectedNodePath = jest.fn();
     const wrapper = mount(
       <TabTree
         {...DEFAULT_PROPS}
-        setSelectedTabIndex={mockSetSelectedTabIndex}
+        setSelectedNodePath={mockSetSelectedNodePath}
       />
     );
     wrapper
@@ -55,86 +56,120 @@ describe("selection", () => {
       .at(1)
       .find(".bp3-tree-node-label")
       .simulate("click");
-    expect(mockSetSelectedTabIndex).lastCalledWith(1);
+    expect(mockSetSelectedNodePath).lastCalledWith([0, 1]);
   });
 
   test.each([
-    ["ArrowDown", 0, 1],
-    ["ArrowUp", 1, 0],
+    ["ArrowDown", [0, 0], "down"],
+    ["ArrowUp", [0, 1], "up"],
     // If no tab is initially selected, we should select the first or last tab
     ["ArrowDown", null, 0],
     ["ArrowUp", null, 1]
-  ])(
-    "supports navigating up and down with the arrow keys (key %j, initial index %j, expected index %j)",
-    (key: string, initialIndex: number, expectedIndex: number) => {
-      const mockSetSelectedTabIndex = jest.fn();
+  ] as Array<[string, [number, number] | null, number | "up" | "down"]>)(
+    "supports navigating up and down with the arrow keys (key %j, initial node path %j, expected index %j)",
+    (
+      key: string,
+      initialNodePath: [number, number] | null,
+      expectedAction: number | "up" | "down"
+    ) => {
+      const mockSetSelectedNodePath = jest.fn();
+      const mockMoveSelectedNodeUp = jest.fn();
+      const mockMoveSelectedNodeDown = jest.fn();
       mount(
         <TabTree
           {...DEFAULT_PROPS}
-          selectedTabIndex={initialIndex}
-          setSelectedTabIndex={mockSetSelectedTabIndex}
+          selectedNodePath={initialNodePath}
+          setSelectedNodePath={mockSetSelectedNodePath}
+          moveSelectedNodeUp={mockMoveSelectedNodeUp}
+          moveSelectedNodeDown={mockMoveSelectedNodeDown}
         />
       );
       document.dispatchEvent(new KeyboardEvent("keydown", { key }));
-      expect(mockSetSelectedTabIndex).lastCalledWith(expectedIndex);
+      if (typeof expectedAction === "number") {
+        expect(mockSetSelectedNodePath).lastCalledWith([0, expectedAction]);
+      } else if (expectedAction === "up") {
+        expect(mockMoveSelectedNodeUp).toBeCalled();
+      } else if (expectedAction === "down") {
+        expect(mockMoveSelectedNodeDown).toBeCalled();
+      } else {
+        throw new Error(`Unexpected action ${expectedAction}`);
+      }
     }
   );
 });
 
 describe("reordering tabs", () => {
-  test.each([["ArrowUp", 1, 0], ["ArrowDown", 0, 1]])(
-    "reorders tabs on Meta + arrow key (key %j, initial index %j, expected index %j)",
-    (key: string, initialIndex: number, expectedIndex: number) => {
+  test.each([["ArrowUp", 1, 0, "up"], ["ArrowDown", 0, 1, "down"]])(
+    "reorders tabs on Meta + arrow key (key %j, initial index %j, expected index %j, expected direction %j)",
+    (
+      key: string,
+      initialIndex: number,
+      expectedIndex: number,
+      expectedDirection: "up" | "down"
+    ) => {
       const mockHandleMoveTab = jest.fn();
-      const mockSetSelectedTabIndex = jest.fn();
+      const mockMoveSelectedNodeDown = jest.fn();
+      const mockMoveSelectedNodeUp = jest.fn();
       mount(
         <TabTree
           {...DEFAULT_PROPS}
           handleMoveTab={mockHandleMoveTab}
-          selectedTabIndex={initialIndex}
-          setSelectedTabIndex={mockSetSelectedTabIndex}
+          selectedNodePath={[0, initialIndex]}
+          moveSelectedNodeDown={mockMoveSelectedNodeDown}
+          moveSelectedNodeUp={mockMoveSelectedNodeUp}
         />
       );
       document.dispatchEvent(
         new KeyboardEvent("keydown", { key, metaKey: true })
       );
       expect(mockHandleMoveTab).lastCalledWith(
+        CHROME_TABS[initialIndex].windowId,
         CHROME_TABS[initialIndex].id,
         expectedIndex
       );
-      expect(mockSetSelectedTabIndex).lastCalledWith(expectedIndex);
+      if (expectedDirection === "up") {
+        expect(mockMoveSelectedNodeUp).toBeCalled();
+      } else if (expectedDirection === "down") {
+        expect(mockMoveSelectedNodeDown).toBeCalled();
+      }
     }
   );
 
   it("does not respond to Meta + arrow key when no tab is selected", () => {
     const mockHandleMoveTab = jest.fn();
-    const mockSetSelectedTabIndex = jest.fn();
+    const mockSetSelectedNodePath = jest.fn();
+    const mockMoveSelectedNodeDown = jest.fn();
+    const mockMoveSelectedNodeUp = jest.fn();
     mount(
       <TabTree
         {...DEFAULT_PROPS}
         handleMoveTab={mockHandleMoveTab}
-        setSelectedTabIndex={mockSetSelectedTabIndex}
+        setSelectedNodePath={mockSetSelectedNodePath}
+        moveSelectedNodeUp={mockMoveSelectedNodeUp}
+        moveSelectedNodeDown={mockMoveSelectedNodeDown}
       />
     );
     document.dispatchEvent(
       new KeyboardEvent("keydown", { key: "ArrowUp", metaKey: true })
     );
     expect(mockHandleMoveTab).not.toBeCalled();
-    expect(mockSetSelectedTabIndex).not.toBeCalled();
+    expect(mockSetSelectedNodePath).not.toBeCalled();
+    expect(mockMoveSelectedNodeUp).not.toBeCalled();
+    expect(mockMoveSelectedNodeDown).not.toBeCalled();
   });
 });
 
 it("clears selection when Escape is pressed", () => {
-  const mockSetSelectedTabIndex = jest.fn();
+  const mockSetSelectedNodePath = jest.fn();
   mount(
     <TabTree
       {...DEFAULT_PROPS}
-      selectedTabIndex={0}
-      setSelectedTabIndex={mockSetSelectedTabIndex}
+      selectedNodePath={[0, 0]}
+      setSelectedNodePath={mockSetSelectedNodePath}
     />
   );
   document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
-  expect(mockSetSelectedTabIndex).lastCalledWith(null);
+  expect(mockSetSelectedNodePath).lastCalledWith(null);
 });
 
 it("goes to the selected tab when Enter is pressed", () => {
@@ -143,7 +178,7 @@ it("goes to the selected tab when Enter is pressed", () => {
     <TabTree
       {...DEFAULT_PROPS}
       handleGoToTab={mockHandleGoToTab}
-      selectedTabIndex={0}
+      selectedNodePath={[0, 0]}
     />
   );
   document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
@@ -156,7 +191,7 @@ it("creates a new tab after the selected tab when Space is pressed", () => {
     <TabTree
       {...DEFAULT_PROPS}
       handleCreateTabAfter={mockHandleCreateTabAfter}
-      selectedTabIndex={0}
+      selectedNodePath={[0, 0]}
     />
   );
   document.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));

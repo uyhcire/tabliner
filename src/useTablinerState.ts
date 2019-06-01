@@ -1,6 +1,10 @@
 import { useEffect, useReducer } from "react";
 import { ChromeTab } from "./ChromeTab";
-import { reduceTablinerState } from "./reduceTablinerState";
+import {
+  reduceTablinerState,
+  SelectedNodePath,
+  groupTabsByWindow
+} from "./reduceTablinerState";
 import { useFocusedWindowListener } from "./listeners/useFocusedWindowListener";
 import { useFocusedTabListener } from "./listeners/useFocusedTabListener";
 
@@ -33,15 +37,21 @@ export function useTablinerState(): {
   chromeTabs: Array<ChromeTab> | null;
   focusedWindowId: number | null;
   focusedTabId: number | null;
-  selectedTabIndex: number | null;
-  setSelectedTabIndex(index: number | null): void;
+  selectedNodePath: SelectedNodePath | null;
+  setSelectedNodePath(index: SelectedNodePath | null): void;
+  moveSelectedNodeUp(): void;
+  moveSelectedNodeDown(): void;
   handleCloseTab(tabId: number): void;
-  handleMoveTab(tabId: number, newIndex: number): void;
+  handleMoveTab(
+    windowId: number,
+    tabId: number,
+    newIndexInWindow: number
+  ): void;
   handleGoToTab(tabId: number): void;
   handleCreateTabAfter(tabId: number): void;
 } {
   const [
-    { chromeTabs, focusedWindowId, focusedTabId, selectedTabIndex },
+    { chromeTabs, focusedWindowId, focusedTabId, selectedNodePath },
     dispatch
   ] = useReducer(reduceTablinerState, {
     chromeTabs: null,
@@ -49,7 +59,7 @@ export function useTablinerState(): {
     ownTabId: null,
     focusedWindowId: null,
     focusedTabId: null,
-    selectedTabIndex: null
+    selectedNodePath: null
   });
 
   // Load tabs
@@ -161,30 +171,44 @@ export function useTablinerState(): {
     chromeTabs,
     focusedWindowId,
     focusedTabId,
-    selectedTabIndex,
-    setSelectedTabIndex(index: number | null): void {
-      dispatch({ type: "SET_SELECTED_INDEX", index });
+    selectedNodePath,
+    setSelectedNodePath(selectedNodePath: SelectedNodePath | null): void {
+      dispatch({ type: "SET_SELECTED_NODE_PATH", selectedNodePath });
+    },
+    moveSelectedNodeUp(): void {
+      dispatch({ type: "MOVE_SELECTED_NODE_UP" });
+    },
+    moveSelectedNodeDown(): void {
+      dispatch({ type: "MOVE_SELECTED_NODE_DOWN" });
     },
     handleCloseTab(tabId: number): void {
       chrome.tabs.remove(tabId);
     },
-    handleMoveTab(tabId: number, newIndex: number): void {
-      if (chromeTabs == null || newIndex < 0 || newIndex >= chromeTabs.length) {
+    handleMoveTab(
+      windowId: number,
+      tabId: number,
+      newIndexInWindow: number
+    ): void {
+      if (chromeTabs == null) {
         return;
       }
 
-      const currentIndex = chromeTabs.findIndex(tab => tab.id === tabId);
-      if (currentIndex === -1) {
-        throw new Error("Tab not found");
+      const groupedTabs = groupTabsByWindow(chromeTabs);
+      const windowIndex = groupedTabs.findIndex(
+        ({ windowId: _windowId }) => _windowId === windowId
+      );
+      if (windowIndex === -1) {
+        throw new Error("Window not found");
       }
 
-      const tab = chromeTabs[currentIndex];
-      const tabAtNewIndex = chromeTabs[newIndex];
-      if (tabAtNewIndex.windowId !== tab.windowId) {
-        return;
+      if (newIndexInWindow < 0) {
+        newIndexInWindow = 0;
+      }
+      if (newIndexInWindow >= groupedTabs[windowIndex].windowTabs.length) {
+        newIndexInWindow = groupedTabs[windowIndex].windowTabs.length - 1;
       }
 
-      chrome.tabs.move(tabId, { index: tabAtNewIndex.index });
+      chrome.tabs.move(tabId, { index: newIndexInWindow });
     },
     handleGoToTab(tabId: number): void {
       if (chromeTabs == null) {

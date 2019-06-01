@@ -51,7 +51,7 @@ it("handles moving tabs when there are multiple windows", () => {
     ownTabId: null,
     focusedWindowId: null,
     focusedTabId: null,
-    selectedTabIndex: null
+    selectedNodePath: null
   };
   const newState = reduceTablinerState(state, {
     type: "TAB_MOVED_EVENT",
@@ -67,26 +67,23 @@ it("handles moving tabs when there are multiple windows", () => {
   ]);
 });
 
-test.each([[-1, 0], [0, 0], [1, 1], [2, 1]])(
-  "sets the tab index but stays within bounds (selecting index %j, expecting index %j)",
-  (indexToSelect, expectedIndex) => {
-    const state: TablinerState = {
-      chromeTabs: CHROME_TABS,
-      detachedTabs: [],
-      ownTabId: null,
-      focusedWindowId: null,
-      focusedTabId: null,
-      selectedTabIndex: null
-    };
+it("sets the selected node path", () => {
+  const state: TablinerState = {
+    chromeTabs: CHROME_TABS,
+    detachedTabs: [],
+    ownTabId: null,
+    focusedWindowId: null,
+    focusedTabId: null,
+    selectedNodePath: null
+  };
 
-    const newState = reduceTablinerState(state, {
-      type: "SET_SELECTED_INDEX",
-      index: indexToSelect
-    });
+  const newState = reduceTablinerState(state, {
+    type: "SET_SELECTED_NODE_PATH",
+    selectedNodePath: [0, 1]
+  });
 
-    expect(newState.selectedTabIndex).toEqual(expectedIndex);
-  }
-);
+  expect(newState.selectedNodePath).toEqual([0, 1]);
+});
 
 it("auto-selects the previously focused tab if Tabliner's own tab is focused", () => {
   const state: TablinerState = {
@@ -95,7 +92,7 @@ it("auto-selects the previously focused tab if Tabliner's own tab is focused", (
     ownTabId: CHROME_TABS[1].id,
     focusedWindowId: CHROME_TABS[0].windowId,
     focusedTabId: CHROME_TABS[0].id,
-    selectedTabIndex: null
+    selectedNodePath: null
   };
 
   const newState = reduceTablinerState(state, {
@@ -104,7 +101,7 @@ it("auto-selects the previously focused tab if Tabliner's own tab is focused", (
   });
 
   expect(newState.focusedTabId).toEqual(CHROME_TABS[1].id);
-  expect(newState.selectedTabIndex).toEqual(0);
+  expect(newState.selectedNodePath).toEqual([0, 0]);
 });
 
 // If Tabliner is already open, we don't want to mess with the user's selection.
@@ -116,7 +113,7 @@ it("never auto-selects Tabliner's own tab", () => {
     ownTabId: CHROME_TABS[1].id,
     focusedWindowId: CHROME_TABS[1].windowId,
     focusedTabId: CHROME_TABS[1].id,
-    selectedTabIndex: CHROME_TABS[0].id
+    selectedNodePath: [0, CHROME_TABS[0].index]
   };
 
   const newState = reduceTablinerState(state, {
@@ -126,5 +123,5 @@ it("never auto-selects Tabliner's own tab", () => {
 
   // Tabliner's own tab is focused, but it's not selected in Tabliner
   expect(newState.focusedTabId).toEqual(CHROME_TABS[1].id);
-  expect(newState.selectedTabIndex).toEqual(0);
+  expect(newState.selectedNodePath).toEqual([0, 0]);
 });

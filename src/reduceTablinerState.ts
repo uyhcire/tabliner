@@ -61,7 +61,12 @@ export type TablinerAction =
   | { type: "OWN_TAB_ID_FETCHED"; tabId: number }
   | { type: "WINDOW_FOCUSED"; windowId: number | null }
   | { type: "TAB_FOCUSED"; tabId: number }
-  | { type: "SET_SELECTED_INDEX"; index: number | null };
+  | {
+      type: "SET_SELECTED_NODE_PATH";
+      selectedNodePath: SelectedNodePath | null;
+    }
+  | { type: "MOVE_SELECTED_NODE_UP" }
+  | { type: "MOVE_SELECTED_NODE_DOWN" };
 
 const reindexTabs = (tabs: Array<ChromeTab>): Array<ChromeTab> =>
   produce(tabs, draft => {
@@ -105,6 +110,31 @@ export const reduceForTabInserted = (
       draft.push(newTab);
     }
   });
+
+// Tabs grouped by window
+export type GroupedTabs = Array<{
+  windowId: number;
+  windowTabs: Array<ChromeTab>;
+}>;
+
+export function groupTabsByWindow(chromeTabs: Array<ChromeTab>): GroupedTabs {
+  const tabsByWindowId: { [windowId: number]: Array<ChromeTab> } = {};
+  for (const tab of chromeTabs) {
+    if (!(tab.windowId in tabsByWindowId)) {
+      tabsByWindowId[tab.windowId] = [];
+    }
+    tabsByWindowId[tab.windowId].push(tab);
+  }
+
+  const orderedWindowIds: Set<number> = new Set(
+    chromeTabs.map(tab => tab.windowId)
+  );
+
+  return [...orderedWindowIds].map(windowId => ({
+    windowId,
+    windowTabs: tabsByWindowId[windowId]
+  }));
+}
 
 export function reduceChromeTabs(
   {
@@ -226,14 +256,60 @@ export function reduceChromeTabs(
   return { chromeTabs, detachedTabs };
 }
 
-export function reduceSelectedTabIndex(
-  selectedTabIndex: number | null,
+export type SelectedNodePath =
+  // If a window is selected
+  | [number]
+  // If a tab is selected
+  | [number, number];
+
+function reduceSelectedNodePath(
+  groupedTabs: GroupedTabs,
+  selectedNodePath: SelectedNodePath | null,
   action: TablinerAction
-): number | null {
-  if (action.type === "SET_SELECTED_INDEX") {
-    return action.index;
+): SelectedNodePath | null {
+  if (action.type === "SET_SELECTED_NODE_PATH") {
+    return action.selectedNodePath;
   }
-  return selectedTabIndex;
+
+  if (selectedNodePath == null) {
+    return null;
+  }
+
+  if (selectedNodePath.length !== 2) {
+    throw new Error("Window selection is not currently supported");
+  }
+  let [windowIndex, tabIndex] = selectedNodePath;
+
+  if (action.type === "MOVE_SELECTED_NODE_UP") {
+    if (windowIndex === 0 && tabIndex === 0) {
+      return selectedNodePath;
+    }
+
+    tabIndex -= 1;
+    if (tabIndex < 0) {
+      windowIndex -= 1;
+      tabIndex = groupedTabs[windowIndex].windowTabs.length - 1;
+    }
+    return [windowIndex, tabIndex];
+  }
+
+  if (action.type === "MOVE_SELECTED_NODE_DOWN") {
+    if (
+      windowIndex === groupedTabs.length - 1 &&
+      tabIndex === groupedTabs[groupedTabs.length - 1].windowTabs.length - 1
+    ) {
+      return selectedNodePath;
+    }
+
+    tabIndex += 1;
+    if (tabIndex >= groupedTabs[windowIndex].windowTabs.length) {
+      windowIndex += 1;
+      tabIndex = 0;
+    }
+    return [windowIndex, tabIndex];
+  }
+
+  return selectedNodePath;
 }
 
 export interface TablinerState {
@@ -242,7 +318,7 @@ export interface TablinerState {
   ownTabId: number | null;
   focusedWindowId: number | null;
   focusedTabId: number | null;
-  selectedTabIndex: number | null;
+  selectedNodePath: SelectedNodePath | null;
 }
 
 export function reduceTablinerState(
@@ -253,16 +329,12 @@ export function reduceTablinerState(
     { chromeTabs: state.chromeTabs, detachedTabs: state.detachedTabs },
     action
   );
-  let selectedTabIndex = reduceSelectedTabIndex(state.selectedTabIndex, action);
 
-  // Keep selectedTabIndex within bounds
-  if (selectedTabIndex == null || chromeTabs == null) {
-    selectedTabIndex == null;
-  } else if (selectedTabIndex < 0) {
-    selectedTabIndex = 0;
-  } else if (selectedTabIndex >= chromeTabs.length) {
-    selectedTabIndex = chromeTabs.length - 1;
-  }
+  const groupedTabs = chromeTabs && groupTabsByWindow(chromeTabs);
+
+  let selectedNodePath =
+    groupedTabs &&
+    reduceSelectedNodePath(groupedTabs, state.selectedNodePath, action);
 
   let ownTabId = state.ownTabId;
   if (action.type === "OWN_TAB_ID_FETCHED") {
@@ -285,17 +357,22 @@ export function reduceTablinerState(
      * This way, if you change your mind, it's easy to go back.
      */
     if (
-      chromeTabs != null &&
+      groupedTabs != null &&
       action.tabId === ownTabId &&
       // If Tabliner is already open, we don't want to mess with the user's selection.
       // So don't auto-select the Tabliner tab, even if it was the most recently focused.
       previousFocusedTabId !== ownTabId
     ) {
-      const previousFocusedTabIndex = chromeTabs.findIndex(
-        tab => tab.id === previousFocusedTabId
-      );
-      if (previousFocusedTabIndex !== -1) {
-        selectedTabIndex = previousFocusedTabIndex;
+      outer: for (const [
+        windowIndex,
+        { windowTabs }
+      ] of groupedTabs.entries()) {
+        for (const [tabIndex, tab] of windowTabs.entries()) {
+          if (tab.id === previousFocusedTabId) {
+            selectedNodePath = [windowIndex, tabIndex];
+            break outer;
+          }
+        }
       }
     }
   }
@@ -306,6 +383,6 @@ export function reduceTablinerState(
     ownTabId,
     focusedWindowId,
     focusedTabId,
-    selectedTabIndex
+    selectedNodePath
   };
 }

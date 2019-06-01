@@ -22,7 +22,11 @@ function MockChildComponent(props: {
   focusedWindowId: number | null;
   focusedTabId: number | null;
   handleCloseTab(tabId: number): void;
-  handleMoveTab(tabId: number, newIndex: number): void;
+  handleMoveTab(
+    windowId: number,
+    tabId: number,
+    newIndexInWindow: number
+  ): void;
   handleCreateTabAfter(tabId: number): void;
 }): null {
   return null;
@@ -83,7 +87,7 @@ describe("performing actions", () => {
     wrapper
       .find(MockChildComponent)
       .props()
-      .handleMoveTab(CHROME_TABS[0].id, 1);
+      .handleMoveTab(CHROME_TABS[0].windowId, CHROME_TABS[0].id, 1);
     expect(chrome.tabs.move).lastCalledWith(CHROME_TABS[0].id, { index: 1 });
   });
 
@@ -94,9 +98,12 @@ describe("performing actions", () => {
     wrapper
       .find(MockChildComponent)
       .props()
-      .handleMoveTab(TWO_WINDOWS_TWO_TABS_EACH[3].id, 2);
+      .handleMoveTab(
+        TWO_WINDOWS_TWO_TABS_EACH[3].windowId,
+        TWO_WINDOWS_TWO_TABS_EACH[3].id,
+        0
+      );
     expect(chrome.tabs.move).lastCalledWith(TWO_WINDOWS_TWO_TABS_EACH[3].id, {
-      // Should move to index 0 (position in window 2) instead of 2 (position across all tabs from all windows)
       index: 0
     });
   });

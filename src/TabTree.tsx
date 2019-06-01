@@ -3,6 +3,11 @@ import { Tree, ITreeNode } from "@blueprintjs/core";
 import scrollIntoView from "scroll-into-view-if-needed";
 
 import { ChromeTab } from "./ChromeTab";
+import {
+  SelectedNodePath,
+  GroupedTabs,
+  groupTabsByWindow
+} from "./reduceTablinerState";
 
 // Helper to make sure we call e.preventDefault() if and only if we handle the key
 function handleKey(key: string, e: KeyboardEvent, handler: () => void): void {
@@ -12,35 +17,33 @@ function handleKey(key: string, e: KeyboardEvent, handler: () => void): void {
   }
 }
 
-function groupTabsByWindow(
-  chromeTabs: Array<ChromeTab>
-): Array<{ windowId: number; windowTabs: Array<ChromeTab> }> {
-  const tabsByWindowId: { [windowId: number]: Array<ChromeTab> } = {};
-  for (const tab of chromeTabs) {
-    if (!(tab.windowId in tabsByWindowId)) {
-      tabsByWindowId[tab.windowId] = [];
-    }
-    tabsByWindowId[tab.windowId].push(tab);
+function getSelectedTabId(
+  groupedTabs: GroupedTabs,
+  selectedNodePath: SelectedNodePath | null
+): number | null {
+  if (selectedNodePath != null && selectedNodePath.length === 2) {
+    const [windowIndex, tabIndex] = selectedNodePath;
+    const selectedTabId = groupedTabs[windowIndex].windowTabs[tabIndex].id;
+    return selectedTabId != null ? selectedTabId : null;
+  } else {
+    return null;
   }
-
-  const orderedWindowIds: Set<number> = new Set(
-    chromeTabs.map(tab => tab.windowId)
-  );
-
-  return [...orderedWindowIds].map(windowId => ({
-    windowId,
-    windowTabs: tabsByWindowId[windowId]
-  }));
 }
 
 export interface TabTreeProps {
   chromeTabs: Array<ChromeTab>;
   handleCloseTab(tabId: number): void;
-  handleMoveTab(tabId: number, newIndex: number): void;
+  handleMoveTab(
+    windowId: number,
+    tabId: number,
+    newIndexInWindow: number
+  ): void;
   handleGoToTab(tabId: number): void;
   handleCreateTabAfter(tabId: number): void;
-  selectedTabIndex: number | null;
-  setSelectedTabIndex(index: number | null): void;
+  selectedNodePath: SelectedNodePath | null;
+  setSelectedNodePath(nodePath: SelectedNodePath | null): void;
+  moveSelectedNodeUp(): void;
+  moveSelectedNodeDown(): void;
 }
 
 export default function TabTree({
@@ -49,94 +52,104 @@ export default function TabTree({
   handleMoveTab,
   handleGoToTab,
   handleCreateTabAfter,
-  selectedTabIndex,
-  setSelectedTabIndex
+  selectedNodePath,
+  setSelectedNodePath,
+  moveSelectedNodeUp,
+  moveSelectedNodeDown
 }: TabTreeProps): JSX.Element {
+  const groupedTabs = groupTabsByWindow(chromeTabs);
+  const selectedTabId = getSelectedTabId(groupedTabs, selectedNodePath);
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent): void {
       handleKey("Backspace", e, () => {
-        if (selectedTabIndex != null) {
-          const selectedTabId = chromeTabs[selectedTabIndex].id;
-          if (selectedTabId != null) {
-            handleCloseTab(selectedTabId);
-          }
+        if (selectedTabId != null) {
+          handleCloseTab(selectedTabId);
         }
       });
       handleKey("Enter", e, () => {
-        if (selectedTabIndex != null) {
-          const selectedTabId = chromeTabs[selectedTabIndex].id;
-          if (selectedTabId != null) {
-            handleGoToTab(selectedTabId);
-          }
+        if (selectedTabId != null) {
+          handleGoToTab(selectedTabId);
         }
       });
       handleKey(" ", e, () => {
-        if (selectedTabIndex != null) {
-          const selectedTabId = chromeTabs[selectedTabIndex].id;
-          if (selectedTabId != null) {
-            handleCreateTabAfter(selectedTabId);
-          }
+        if (selectedTabId != null) {
+          handleCreateTabAfter(selectedTabId);
         }
       });
       handleKey("ArrowUp", e, () => {
         if (e.metaKey) {
-          if (selectedTabIndex != null && selectedTabIndex > 0) {
-            const selectedTabId = chromeTabs[selectedTabIndex].id;
-            if (selectedTabId != null) {
-              setSelectedTabIndex(selectedTabIndex - 1);
-              handleMoveTab(selectedTabId, selectedTabIndex - 1);
-            }
+          if (
+            selectedTabId != null &&
+            selectedNodePath != null &&
+            selectedNodePath.length === 2
+          ) {
+            const [windowIndex, tabIndex] = selectedNodePath;
+            moveSelectedNodeUp();
+            handleMoveTab(
+              groupedTabs[windowIndex].windowId,
+              selectedTabId,
+              tabIndex - 1
+            );
           }
-        } else if (selectedTabIndex != null) {
-          setSelectedTabIndex(selectedTabIndex - 1);
+        } else if (selectedNodePath != null) {
+          moveSelectedNodeUp();
         } else {
-          setSelectedTabIndex(chromeTabs.length - 1);
+          setSelectedNodePath([
+            groupedTabs.length - 1,
+            // Index of last tab in last window
+            groupedTabs[groupedTabs.length - 1].windowTabs.length - 1
+          ]);
         }
       });
       handleKey("ArrowDown", e, () => {
         if (e.metaKey) {
           if (
-            selectedTabIndex != null &&
-            selectedTabIndex < chromeTabs.length - 1
+            selectedTabId != null &&
+            selectedNodePath != null &&
+            selectedNodePath.length === 2
           ) {
-            const selectedTabId = chromeTabs[selectedTabIndex].id;
-            if (selectedTabId != null) {
-              setSelectedTabIndex(selectedTabIndex + 1);
-              handleMoveTab(selectedTabId, selectedTabIndex + 1);
-            }
+            const [windowIndex, tabIndex] = selectedNodePath;
+            moveSelectedNodeDown();
+            handleMoveTab(
+              groupedTabs[windowIndex].windowId,
+              selectedTabId,
+              tabIndex + 1
+            );
           }
-        } else if (selectedTabIndex != null) {
-          setSelectedTabIndex(selectedTabIndex + 1);
+        } else if (selectedNodePath != null) {
+          moveSelectedNodeDown();
         } else {
-          setSelectedTabIndex(0);
+          setSelectedNodePath([0, 0]);
         }
       });
       handleKey("Escape", e, () => {
-        setSelectedTabIndex(null);
+        setSelectedNodePath(null);
       });
     }
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [
-    chromeTabs,
+    groupedTabs,
+    selectedTabId,
     handleCloseTab,
     handleMoveTab,
     handleGoToTab,
     handleCreateTabAfter,
-    selectedTabIndex,
-    setSelectedTabIndex
+    selectedNodePath,
+    setSelectedNodePath,
+    moveSelectedNodeUp,
+    moveSelectedNodeDown
   ]);
-
-  const groupedTabs = groupTabsByWindow(chromeTabs);
 
   return (
     <Tree
       ref={(treeInstance: Tree | null) => {
-        if (treeInstance && selectedTabIndex != null) {
-          const selectedTabId = chromeTabs[selectedTabIndex].id;
+        if (treeInstance) {
           const selectedNode =
-            selectedTabId && treeInstance.getNodeContentElement(selectedTabId);
+            selectedTabId &&
+            treeInstance.getNodeContentElement(`tab-${selectedTabId}`);
           if (selectedNode) {
             scrollIntoView(selectedNode, {
               scrollMode: "if-needed",
@@ -146,49 +159,36 @@ export default function TabTree({
           }
         }
       }}
-      contents={(() => {
-        const windowTreeNodes = [];
-
-        let windowBaseTabIndex = 0;
-        for (const [
-          windowIndex,
-          { windowId, windowTabs }
-        ] of groupedTabs.entries()) {
-          windowTreeNodes.push({
-            id: windowId,
-            label: `Window ${windowIndex + 1}`,
-            isExpanded: true,
-            hasCaret: false,
-            childNodes: windowTabs.map(
-              (tab, windowTabIndex): ITreeNode => ({
-                id: tab.id != null ? String(tab.id) : `undefined-tab-id-${i}`,
-                icon: <img src={tab.favIconUrl} height={20} width={20} />,
-                label: (
-                  <span>
-                    {tab.active ? <strong>{tab.title}</strong> : tab.title}
-                  </span>
-                ),
-                isSelected:
-                  windowBaseTabIndex + windowTabIndex === selectedTabIndex
-              })
-            )
-          });
-
-          windowBaseTabIndex += windowTabs.length;
-        }
-
-        return windowTreeNodes;
-      })()}
+      contents={[...groupedTabs.entries()].map(
+        ([windowIndex, { windowId, windowTabs }]) => ({
+          id: `window-${windowId}`,
+          label: `Window ${windowIndex + 1}`,
+          isExpanded: true,
+          hasCaret: false,
+          childNodes: windowTabs.map(
+            (tab, windowTabIndex): ITreeNode => ({
+              id:
+                tab.id != null
+                  ? `tab-${tab.id}`
+                  : `undefined-tab-id-${windowTabIndex}`,
+              icon: <img src={tab.favIconUrl} height={20} width={20} />,
+              label: (
+                <span>
+                  {tab.active ? <strong>{tab.title}</strong> : tab.title}
+                </span>
+              ),
+              isSelected: Boolean(
+                selectedNodePath &&
+                  selectedNodePath[0] === windowIndex &&
+                  selectedNodePath[1] === windowTabIndex
+              )
+            })
+          )
+        })
+      )}
       onNodeClick={(_node, nodePath) => {
         if (nodePath.length === 2) {
-          const [windowIndex, tabIndex] = nodePath;
-
-          let windowBaseTabIndex = 0;
-          for (const { windowTabs } of groupedTabs.slice(0, windowIndex)) {
-            windowBaseTabIndex += windowTabs.length;
-          }
-
-          setSelectedTabIndex(windowBaseTabIndex + tabIndex);
+          setSelectedNodePath(nodePath as [number, number]);
         } else if (nodePath.length === 1) {
           // For now, do nothing if a window's tree node is clicked
         } else {
