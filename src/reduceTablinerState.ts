@@ -262,7 +262,7 @@ export type SelectedNodePath =
   // If a tab is selected
   | [number, number];
 
-function reduceSelectedNodePath(
+export function reduceSelectedNodePath(
   groupedTabs: GroupedTabs,
   selectedNodePath: SelectedNodePath | null,
   action: TablinerAction

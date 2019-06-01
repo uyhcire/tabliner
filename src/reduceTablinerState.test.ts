@@ -1,7 +1,11 @@
 import {
   TablinerState,
   reduceTablinerState,
-  reduceForTabInserted
+  reduceForTabInserted,
+  GroupedTabs,
+  groupTabsByWindow,
+  reduceSelectedNodePath,
+  TablinerAction
 } from "./reduceTablinerState";
 import {
   CHROME_TABS,
@@ -40,6 +44,56 @@ describe("reduceForTabInserted", () => {
       const newTabs = reduceForTabInserted(TWO_WINDOWS_TWO_TABS_EACH, newTab);
 
       expect(newTabs.findIndex(tab => tab.id === 1234)).toEqual(finalPosition);
+    }
+  );
+});
+
+describe("reduceSelectedNodePath", () => {
+  let groupedTabs: GroupedTabs;
+  beforeEach(() => {
+    groupedTabs = groupTabsByWindow(TWO_WINDOWS_TWO_TABS_EACH);
+  });
+
+  it("sets the selected node path", () => {
+    const selectedNodePath: [number, number] = [0, 0];
+    const newSelectedNodePath = reduceSelectedNodePath(
+      groupedTabs,
+      selectedNodePath,
+      {
+        type: "SET_SELECTED_NODE_PATH",
+        selectedNodePath: [0, 1]
+      }
+    );
+    expect(newSelectedNodePath).toEqual([0, 1]);
+  });
+
+  type MoveNodePathTestArgs = [
+    "up" | "down",
+    [number, number] | null,
+    [number, number] | null
+  ];
+
+  test.each([
+    ["up", null, null],
+    ["up", [0, 0], [0, 0]],
+    ["up", [0, 1], [0, 0]],
+    ["up", [1, 0], [0, 1]],
+    ["down", null, null],
+    ["down", [1, 1], [1, 1]],
+    ["down", [1, 0], [1, 1]],
+    ["down", [0, 1], [1, 0]]
+  ] as Array<MoveNodePathTestArgs>)(
+    "moves the node path up or down (direction %j, starting at %j, expected to end at %j)",
+    (...args: MoveNodePathTestArgs) => {
+      const [direction, selectedNodePath, expectedNodePath] = args;
+      const newSelectedNodePath = reduceSelectedNodePath(
+        groupedTabs,
+        selectedNodePath,
+        direction === "up"
+          ? { type: "MOVE_SELECTED_NODE_UP" }
+          : { type: "MOVE_SELECTED_NODE_DOWN" }
+      );
+      expect(newSelectedNodePath).toEqual(expectedNodePath);
     }
   );
 });
