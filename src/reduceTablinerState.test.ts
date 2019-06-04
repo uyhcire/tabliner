@@ -5,7 +5,7 @@ import {
   GroupedTabs,
   groupTabsByWindow,
   reduceSelectedNodePath,
-  TablinerAction
+  keepSelectionWithinBounds
 } from "./reduceTablinerState";
 import {
   CHROME_TABS,
@@ -96,6 +96,41 @@ describe("reduceSelectedNodePath", () => {
       expect(newSelectedNodePath).toEqual(expectedNodePath);
     }
   );
+});
+
+describe("keepSelectionWithinBounds", () => {
+  it("after closing the rightmost tab in a window", () => {
+    const newSelectedNodePath = keepSelectionWithinBounds(
+      groupTabsByWindow([CHROME_TABS[0]]),
+      [0, 1]
+    );
+    expect(newSelectedNodePath).toEqual([0, 0]);
+  });
+
+  it("keeps the selection within the same window after closing the rightmost tab", () => {
+    const newSelectedNodePath = keepSelectionWithinBounds(
+      groupTabsByWindow([
+        TWO_WINDOWS_TWO_TABS_EACH[0],
+        // Second tab of first window was closed
+        TWO_WINDOWS_TWO_TABS_EACH[2],
+        TWO_WINDOWS_TWO_TABS_EACH[3]
+      ]),
+      [0, 1]
+    );
+    expect(newSelectedNodePath).toEqual([0, 0]);
+  });
+
+  it("moves selection to the previous window if closing the rightmost window", () => {
+    const newSelectedNodePath = keepSelectionWithinBounds(
+      groupTabsByWindow([
+        TWO_WINDOWS_TWO_TABS_EACH[0],
+        TWO_WINDOWS_TWO_TABS_EACH[1]
+        // The second window was closed
+      ]),
+      [1, 0]
+    );
+    expect(newSelectedNodePath).toEqual([0, 1]);
+  });
 });
 
 it("handles moving tabs when there are multiple windows", () => {

@@ -262,6 +262,24 @@ export type SelectedNodePath =
   // If a tab is selected
   | [number, number];
 
+export function keepSelectionWithinBounds(
+  groupedTabs: GroupedTabs,
+  selectedNodePath: [number, number]
+): SelectedNodePath {
+  let [windowIndex, tabIndex] = selectedNodePath;
+
+  if (windowIndex >= groupedTabs.length) {
+    windowIndex = groupedTabs.length - 1;
+    tabIndex = groupedTabs[windowIndex].windowTabs.length - 1;
+  } else if (tabIndex < 0) {
+    tabIndex = 0;
+  } else if (tabIndex >= groupedTabs[windowIndex].windowTabs.length) {
+    tabIndex = groupedTabs[windowIndex].windowTabs.length - 1;
+  }
+
+  return [windowIndex, tabIndex];
+}
+
 export function reduceSelectedNodePath(
   groupedTabs: GroupedTabs,
   selectedNodePath: SelectedNodePath | null,
@@ -278,9 +296,10 @@ export function reduceSelectedNodePath(
   if (selectedNodePath.length !== 2) {
     throw new Error("Window selection is not currently supported");
   }
-  let [windowIndex, tabIndex] = selectedNodePath;
 
   if (action.type === "MOVE_SELECTED_NODE_UP") {
+    let [windowIndex, tabIndex] = selectedNodePath;
+
     if (windowIndex === 0 && tabIndex === 0) {
       return selectedNodePath;
     }
@@ -291,9 +310,9 @@ export function reduceSelectedNodePath(
       tabIndex = groupedTabs[windowIndex].windowTabs.length - 1;
     }
     return [windowIndex, tabIndex];
-  }
+  } else if (action.type === "MOVE_SELECTED_NODE_DOWN") {
+    let [windowIndex, tabIndex] = selectedNodePath;
 
-  if (action.type === "MOVE_SELECTED_NODE_DOWN") {
     if (
       windowIndex === groupedTabs.length - 1 &&
       tabIndex === groupedTabs[groupedTabs.length - 1].windowTabs.length - 1
@@ -307,9 +326,9 @@ export function reduceSelectedNodePath(
       tabIndex = 0;
     }
     return [windowIndex, tabIndex];
+  } else {
+    return keepSelectionWithinBounds(groupedTabs, selectedNodePath);
   }
-
-  return selectedNodePath;
 }
 
 export interface TablinerState {
