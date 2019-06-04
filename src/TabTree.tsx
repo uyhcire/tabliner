@@ -65,6 +65,24 @@ export default function TabTree({
       handleKey("Backspace", e, () => {
         if (selectedTabId != null) {
           handleCloseTab(selectedTabId);
+        } else if (selectedNodePath && selectedNodePath.length === 1) {
+          const [selectedWindowIndex] = selectedNodePath;
+          if (selectedWindowIndex === 0) {
+            throw new Error(
+              "Cannot merge the first window with the previous window"
+            );
+          }
+          const { windowTabs } = groupedTabs[selectedWindowIndex];
+
+          const tabIds = windowTabs.map(tab => tab.id);
+          if (tabIds.some(tabId => tabId == null)) {
+            throw new Error("Cannot merge window with undefined tab IDs");
+          }
+
+          chrome.tabs.move(tabIds as Array<number>, {
+            windowId: groupedTabs[selectedWindowIndex - 1].windowId,
+            index: -1
+          });
         }
       });
       handleKey("Enter", e, () => {
@@ -152,36 +170,45 @@ export default function TabTree({
         }
       }}
       contents={[...groupedTabs.entries()].map(
-        ([windowIndex, { windowId, windowTabs }]) => ({
-          id: `window-${windowId}`,
-          label: `Window ${windowIndex + 1}`,
-          isExpanded: true,
-          hasCaret: false,
-          isSelected: Boolean(
+        ([windowIndex, { windowId, windowTabs }]) => {
+          const isWindowSelected = Boolean(
             selectedNodePath &&
               selectedNodePath.length === 1 &&
               selectedNodePath[0] === windowIndex
-          ),
-          childNodes: windowTabs.map(
-            (tab, windowTabIndex): ITreeNode => ({
-              id:
-                tab.id != null
-                  ? `tab-${tab.id}`
-                  : `undefined-tab-id-${windowTabIndex}`,
-              icon: <img src={tab.favIconUrl} height={20} width={20} />,
-              label: (
-                <span>
-                  {tab.active ? <strong>{tab.title}</strong> : tab.title}
-                </span>
-              ),
-              isSelected: Boolean(
-                selectedNodePath &&
-                  selectedNodePath[0] === windowIndex &&
-                  selectedNodePath[1] === windowTabIndex
-              )
-            })
-          )
-        })
+          );
+
+          let windowLabel = `Window ${windowIndex + 1}`;
+          if (isWindowSelected && windowIndex !== 0) {
+            windowLabel += " (Backspace to merge with previous window)";
+          }
+
+          return {
+            id: `window-${windowId}`,
+            label: windowLabel,
+            isExpanded: true,
+            hasCaret: false,
+            isSelected: isWindowSelected,
+            childNodes: windowTabs.map(
+              (tab, windowTabIndex): ITreeNode => ({
+                id:
+                  tab.id != null
+                    ? `tab-${tab.id}`
+                    : `undefined-tab-id-${windowTabIndex}`,
+                icon: <img src={tab.favIconUrl} height={20} width={20} />,
+                label: (
+                  <span>
+                    {tab.active ? <strong>{tab.title}</strong> : tab.title}
+                  </span>
+                ),
+                isSelected: Boolean(
+                  selectedNodePath &&
+                    selectedNodePath[0] === windowIndex &&
+                    selectedNodePath[1] === windowTabIndex
+                )
+              })
+            )
+          };
+        }
       )}
       onNodeClick={(_node, nodePath) => {
         if (nodePath.length === 2) {
