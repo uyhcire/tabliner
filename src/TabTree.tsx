@@ -195,7 +195,7 @@ export default function TabTree({
         if (nodePath.length === 2) {
           setSelectedNodePath(nodePath as [number, number]);
         } else if (nodePath.length === 1) {
-          // For now, do nothing if a window's tree node is clicked
+          setSelectedNodePath(nodePath as [number]);
         } else {
           throw new Error(`Unexpected node path of length ${nodePath.length}`);
         }

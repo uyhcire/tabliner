@@ -82,6 +82,23 @@ describe("selection", () => {
     expect(mockSetSelectedNodePath).lastCalledWith([0, 1]);
   });
 
+  it("selects a window when clicked", () => {
+    const mockSetSelectedNodePath = jest.fn();
+    const wrapper = mount(
+      <TabTree
+        {...DEFAULT_PROPS}
+        setSelectedNodePath={mockSetSelectedNodePath}
+      />
+    );
+    wrapper
+      .find(TreeNode)
+      .at(0)
+      .find(".bp3-tree-node-label")
+      .at(0)
+      .simulate("click");
+    expect(mockSetSelectedNodePath).lastCalledWith([0]);
+  });
+
   test.each([
     ["ArrowDown", [0, 0], "down"],
     ["ArrowUp", [0, 1], "up"],
