@@ -24,6 +24,29 @@ it("renders", () => {
   expect(wrapper.text()).not.toMatch(/some random website/);
 });
 
+it("renders the selected tab as selected", () => {
+  const wrapper = mount(
+    <TabTree {...DEFAULT_PROPS} selectedNodePath={[0, 0]} />
+  );
+  expect(
+    wrapper
+      .find(".bp3-tree-node-selected")
+      .find(".bp3-tree-node-label")
+      .text()
+  ).toEqual(CHROME_TABS[0].title);
+});
+
+it("renders the selected window as selected", () => {
+  const wrapper = mount(<TabTree {...DEFAULT_PROPS} selectedNodePath={[0]} />);
+  expect(
+    wrapper
+      .find(".bp3-tree-node-selected")
+      .find(".bp3-tree-node-label")
+      .at(0)
+      .text()
+  ).toEqual("Window 1");
+});
+
 it("removes the selected tab on Backspace", () => {
   const mockHandleCloseTab = jest.fn();
   mount(
