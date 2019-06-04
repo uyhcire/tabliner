@@ -292,22 +292,6 @@ export function keepSelectionWithinBounds(
   }
 }
 
-function getOrderedNodePaths(
-  groupedTabs: GroupedTabs
-): Array<SelectedNodePath> {
-  const orderedNodePaths: Array<SelectedNodePath> = [];
-  for (const [windowIndex, { windowTabs }] of groupedTabs.entries()) {
-    const windowNodePath = [windowIndex] as SelectedNodePath;
-    orderedNodePaths.push(windowNodePath);
-
-    const tabNodePaths = windowTabs.map(
-      (_tab, tabIndex) => [windowIndex, tabIndex] as SelectedNodePath
-    );
-    orderedNodePaths.push(...tabNodePaths);
-  }
-  return orderedNodePaths;
-}
-
 export function reduceSelectedNodePath(
   groupedTabs: GroupedTabs,
   selectedNodePath: SelectedNodePath | null,
@@ -317,35 +301,49 @@ export function reduceSelectedNodePath(
     return action.selectedNodePath;
   }
 
-  if (
-    action.type === "MOVE_SELECTED_NODE_UP" ||
-    action.type === "MOVE_SELECTED_NODE_DOWN"
-  ) {
-    const orderedNodePaths = getOrderedNodePaths(groupedTabs);
-
+  if (action.type === "MOVE_SELECTED_NODE_UP") {
     if (selectedNodePath == null) {
-      return action.type === "MOVE_SELECTED_NODE_UP"
-        ? orderedNodePaths[orderedNodePaths.length - 1]
-        : orderedNodePaths[0];
+      // Select the last tab in the last window
+      return [
+        groupedTabs.length - 1,
+        groupedTabs[groupedTabs.length - 1].windowTabs.length - 1
+      ];
     }
 
-    const currentNodePathIndex = orderedNodePaths.findIndex(
-      ([windowIndex, tabIndex]) =>
-        windowIndex === selectedNodePath[0] && tabIndex === selectedNodePath[1]
-    );
-    if (currentNodePathIndex === -1) {
-      throw new Error("Current selection is out of bounds");
+    let [windowIndex, tabIndex] = selectedNodePath;
+
+    if (windowIndex === 0 && tabIndex == null) {
+      return selectedNodePath;
+    } else if (tabIndex === 0) {
+      return [windowIndex];
+    } else if (tabIndex == null) {
+      return [
+        windowIndex - 1,
+        groupedTabs[windowIndex - 1].windowTabs.length - 1
+      ];
+    } else {
+      return [windowIndex, tabIndex - 1];
+    }
+  } else if (action.type === "MOVE_SELECTED_NODE_DOWN") {
+    if (selectedNodePath == null) {
+      // Select the first window
+      return [0];
     }
 
-    const increment = action.type === "MOVE_SELECTED_NODE_UP" ? -1 : +1;
-    let newNodePathIndex = currentNodePathIndex + increment;
-    if (newNodePathIndex < 0) {
-      newNodePathIndex = 0;
-    } else if (newNodePathIndex >= orderedNodePaths.length) {
-      newNodePathIndex = orderedNodePaths.length - 1;
-    }
+    let [windowIndex, tabIndex] = selectedNodePath;
 
-    return orderedNodePaths[newNodePathIndex];
+    if (
+      windowIndex === groupedTabs.length - 1 &&
+      tabIndex === groupedTabs[windowIndex].windowTabs.length - 1
+    ) {
+      return selectedNodePath;
+    } else if (tabIndex === groupedTabs[windowIndex].windowTabs.length - 1) {
+      return [windowIndex + 1];
+    } else if (tabIndex == null) {
+      return [windowIndex, 0];
+    } else {
+      return [windowIndex, tabIndex + 1];
+    }
   } else {
     return keepSelectionWithinBounds(groupedTabs, selectedNodePath);
   }
