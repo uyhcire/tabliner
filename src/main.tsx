@@ -17,7 +17,8 @@ function App(): JSX.Element | null {
     handleCloseTab,
     handleMoveTab,
     handleGoToTab,
-    handleCreateTabAfter
+    handleCreateTabAfter,
+    handleMergeWindows
   } = useTablinerState();
 
   return (
@@ -29,6 +30,7 @@ function App(): JSX.Element | null {
           handleMoveTab={handleMoveTab}
           handleGoToTab={handleGoToTab}
           handleCreateTabAfter={handleCreateTabAfter}
+          handleMergeWindows={handleMergeWindows}
           selectedNodePath={selectedNodePath}
           setSelectedNodePath={setSelectedNodePath}
           moveSelectedNodeUp={moveSelectedNodeUp}

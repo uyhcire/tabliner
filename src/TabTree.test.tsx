@@ -11,6 +11,7 @@ const DEFAULT_PROPS: TabTreeProps = {
   handleMoveTab: () => {},
   handleGoToTab: () => {},
   handleCreateTabAfter: () => {},
+  handleMergeWindows: () => {},
   selectedNodePath: null,
   setSelectedNodePath: () => {},
   moveSelectedNodeUp: () => {},

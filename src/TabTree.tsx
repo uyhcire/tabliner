@@ -40,6 +40,13 @@ export interface TabTreeProps {
   ): void;
   handleGoToTab(tabId: number): void;
   handleCreateTabAfter(tabId: number): void;
+  handleMergeWindows({
+    sourceWindowId,
+    destinationWindowId
+  }: {
+    sourceWindowId: number;
+    destinationWindowId: number;
+  }): void;
   selectedNodePath: SelectedNodePath | null;
   setSelectedNodePath(nodePath: SelectedNodePath | null): void;
   moveSelectedNodeUp(): void;
@@ -52,6 +59,7 @@ export default function TabTree({
   handleMoveTab,
   handleGoToTab,
   handleCreateTabAfter,
+  handleMergeWindows,
   selectedNodePath,
   setSelectedNodePath,
   moveSelectedNodeUp,
@@ -72,16 +80,9 @@ export default function TabTree({
               "Cannot merge the first window with the previous window"
             );
           }
-          const { windowTabs } = groupedTabs[selectedWindowIndex];
-
-          const tabIds = windowTabs.map(tab => tab.id);
-          if (tabIds.some(tabId => tabId == null)) {
-            throw new Error("Cannot merge window with undefined tab IDs");
-          }
-
-          chrome.tabs.move(tabIds as Array<number>, {
-            windowId: groupedTabs[selectedWindowIndex - 1].windowId,
-            index: -1
+          handleMergeWindows({
+            sourceWindowId: groupedTabs[selectedWindowIndex].windowId,
+            destinationWindowId: groupedTabs[selectedWindowIndex - 1].windowId
           });
         }
       });
@@ -147,6 +148,7 @@ export default function TabTree({
     handleMoveTab,
     handleGoToTab,
     handleCreateTabAfter,
+    handleMergeWindows,
     selectedNodePath,
     setSelectedNodePath,
     moveSelectedNodeUp,

@@ -49,6 +49,13 @@ export function useTablinerState(): {
   ): void;
   handleGoToTab(tabId: number): void;
   handleCreateTabAfter(tabId: number): void;
+  handleMergeWindows({
+    sourceWindowId,
+    destinationWindowId
+  }: {
+    sourceWindowId: number;
+    destinationWindowId: number;
+  }): void;
 } {
   const [
     { chromeTabs, focusedWindowId, focusedTabId, selectedNodePath },
@@ -236,6 +243,29 @@ export function useTablinerState(): {
           chrome.windows.update(tab.windowId, { focused: true });
         }
       );
+    },
+    handleMergeWindows({
+      sourceWindowId,
+      destinationWindowId
+    }: {
+      sourceWindowId: number;
+      destinationWindowId: number;
+    }): void {
+      if (chromeTabs == null) {
+        return;
+      }
+
+      const tabIds = chromeTabs
+        .filter(tab => tab.windowId === sourceWindowId)
+        .map(tab => tab.id);
+      if (tabIds.some(tabId => tabId == null)) {
+        throw new Error("Cannot merge window with undefined tab IDs");
+      }
+
+      chrome.tabs.move(tabIds as Array<number>, {
+        windowId: destinationWindowId,
+        index: -1
+      });
     }
   };
 }
