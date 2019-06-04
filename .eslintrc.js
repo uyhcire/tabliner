@@ -34,6 +34,13 @@ module.exports = {
     ],
     "@typescript-eslint/no-non-null-assertion": "off",
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "error"
+    "react-hooks/exhaustive-deps": "error",
+    "no-restricted-syntax": [
+      "error",
+      {
+        selector: "CallExpression[callee.name='mount']",
+        message: "Use `safeMount` instead of Enzyme's `mount`"
+      }
+    ]
   }
 };

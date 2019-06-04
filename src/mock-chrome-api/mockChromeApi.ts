@@ -1,5 +1,6 @@
 import { ChromeTab } from "../ChromeTab";
 import { CHROME_WINDOWS } from "../fixtures";
+import { cleanUpEnzymeAfterEachTest } from "../safeMount";
 
 interface MockEvent<ListenerType> {
   addListener: (cb: ListenerType) => void;
@@ -194,5 +195,9 @@ export function mockChromeApi(tabs: Array<ChromeTab>): ChromeApiListeners {
 }
 
 export function teardownChromeApiMock(): void {
+  // global.chrome is needed to clean up Chrome event listeners,
+  // so components need to be cleaned up before `chrome` is deleted
+  cleanUpEnzymeAfterEachTest();
+
   delete global.chrome;
 }

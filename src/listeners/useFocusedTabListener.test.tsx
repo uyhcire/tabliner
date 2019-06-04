@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { act } from "react-dom/test-utils";
-import { mount } from "enzyme";
 
 import { useFocusedTabListener } from "./useFocusedTabListener";
 import { CHROME_TABS } from "../fixtures";
@@ -9,6 +8,7 @@ import {
   teardownChromeApiMock,
   mockChromeApi
 } from "../mock-chrome-api/mockChromeApi";
+import { safeMount } from "../safeMount";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function MockChildComponent(props: { focusedTabId: number | null }): null {
@@ -33,7 +33,7 @@ beforeEach(() => {
 });
 
 it("responds when a tab is activated in the focused window", () => {
-  const wrapper = mount(
+  const wrapper = safeMount(
     <MockComponent focusedWindowId={CHROME_TABS[1].windowId} />
   );
   act(() => {
@@ -49,7 +49,7 @@ it("responds when a tab is activated in the focused window", () => {
 });
 
 it("when another window is focused, reports the active tab in that window", () => {
-  const wrapper = mount(<MockComponent focusedWindowId={1234} />);
+  const wrapper = safeMount(<MockComponent focusedWindowId={1234} />);
   expect(CHROME_TABS[0].active).toBeTruthy();
   act(() => {
     listeners.windows.onFocusChanged[0](CHROME_TABS[0].windowId);

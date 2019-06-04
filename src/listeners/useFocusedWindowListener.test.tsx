@@ -1,4 +1,3 @@
-import { mount } from "enzyme";
 import React, { useState } from "react";
 import { act } from "react-dom/test-utils";
 
@@ -9,6 +8,7 @@ import {
   teardownChromeApiMock
 } from "../mock-chrome-api/mockChromeApi";
 import { CHROME_TABS, CHROME_WINDOWS } from "../fixtures";
+import { safeMount } from "../safeMount";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function MockChildComponent(props: { focusedWindowId: number | null }): null {
@@ -29,7 +29,7 @@ beforeEach(() => {
 });
 
 it("responds to focus change", () => {
-  const wrapper = mount(<MockComponent />);
+  const wrapper = safeMount(<MockComponent />);
   // Initially focused window
   expect(wrapper.find(MockChildComponent).props().focusedWindowId).toEqual(
     CHROME_WINDOWS[0].id

@@ -1,4 +1,3 @@
-import { mount } from "enzyme";
 import React from "react";
 import { act } from "react-dom/test-utils";
 
@@ -15,6 +14,7 @@ import {
   mockChromeApi,
   teardownChromeApiMock
 } from "mock-chrome-api/mockChromeApi";
+import { safeMount } from "./safeMount";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function MockChildComponent(props: {
@@ -61,12 +61,12 @@ beforeEach(() => {
 
 it("returns null initially", () => {
   chrome.tabs.query = () => {};
-  const wrapper = mount(<MockComponent />);
+  const wrapper = safeMount(<MockComponent />);
   expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual(null);
 });
 
 it("returns fetched tabs", () => {
-  const wrapper = mount(<MockComponent />);
+  const wrapper = safeMount(<MockComponent />);
   expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual(
     CHROME_TABS
   );
@@ -74,7 +74,7 @@ it("returns fetched tabs", () => {
 
 describe("performing actions", () => {
   it("removes tabs", () => {
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
     wrapper
       .find(MockChildComponent)
       .props()
@@ -83,7 +83,7 @@ describe("performing actions", () => {
   });
 
   it("moves tabs", () => {
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
     wrapper
       .find(MockChildComponent)
       .props()
@@ -94,7 +94,7 @@ describe("performing actions", () => {
   it("moves tabs when there is more than one window", () => {
     teardownChromeApiMock();
     listeners = mockChromeApi(TWO_WINDOWS_TWO_TABS_EACH);
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
     wrapper
       .find(MockChildComponent)
       .props()
@@ -109,7 +109,7 @@ describe("performing actions", () => {
   });
 
   it("creates tabs", () => {
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
     wrapper
       .find(MockChildComponent)
       .props()
@@ -127,7 +127,7 @@ describe("performing actions", () => {
 
 describe("responds to Tab API events", () => {
   it("removes tabs from the list when they are closed", () => {
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
     act(() => {
       listeners.tabs.onRemoved[0](CHROME_TABS[0].id, {
         windowId: CHROME_TABS[0].windowId,
@@ -141,7 +141,7 @@ describe("responds to Tab API events", () => {
   });
 
   it("reorders tabs in the list when they are moved", () => {
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
     act(() => {
       listeners.tabs.onMoved[0](CHROME_TABS[0].id, {
         fromIndex: 0,
@@ -167,7 +167,7 @@ describe("responds to Tab API events", () => {
     ]);
     teardownChromeApiMock();
     listeners = mockChromeApi(tabs);
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
     act(() => {
       // I dragged the 1st tab to be 6th and recorded the events Chrome fired
       for (const [fromIndex, toIndex] of [
@@ -202,7 +202,7 @@ describe("responds to Tab API events", () => {
     ]);
     teardownChromeApiMock();
     listeners = mockChromeApi(tabs);
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
     act(() => {
       // I dragged a group of 2 tabs and recorded the events Chrome fired
       for (const [tabId, fromIndex, toIndex] of [
@@ -228,7 +228,7 @@ describe("responds to Tab API events", () => {
   });
 
   it("creates tabs at the beginning of a window", () => {
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
     const newTab: ChromeTab = makeChromeTab({
       id: 1234,
       index: 0,
@@ -248,7 +248,7 @@ describe("responds to Tab API events", () => {
   });
 
   it("creates tabs at the end of a window", () => {
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
     const newTab: ChromeTab = makeChromeTab({
       id: 1234,
       index: 2,
@@ -267,7 +267,7 @@ describe("responds to Tab API events", () => {
   });
 
   it("creates a tab in a new window", () => {
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
     const newTab: ChromeTab = makeChromeTab({
       id: 1234,
       index: 0,
@@ -286,7 +286,7 @@ describe("responds to Tab API events", () => {
   });
 
   it("updates tabs", () => {
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
 
     act(() => {
       listeners.tabs.onUpdated[0](
@@ -304,7 +304,7 @@ describe("responds to Tab API events", () => {
   });
 
   it("changes the active tab", () => {
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
     act(() => {
       listeners.tabs.onActivated[0]({
         tabId: CHROME_TABS[1].id,
@@ -319,7 +319,7 @@ describe("responds to Tab API events", () => {
   });
 
   it("sets focusedWindowId and focusedTabId", () => {
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
 
     act(() => {
       listeners.windows.onFocusChanged.forEach(listener =>
@@ -345,7 +345,7 @@ describe("responds to Tab API events", () => {
   });
 
   it("detaches and re-attaches a tab", () => {
-    const wrapper = mount(<MockComponent />);
+    const wrapper = safeMount(<MockComponent />);
 
     const windowId = CHROME_TABS[0].windowId;
     act(() => {

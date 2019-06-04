@@ -1,9 +1,9 @@
-import { mount } from "enzyme";
 import React from "react";
 
 import TabTree, { TabTreeProps } from "./TabTree";
 import { TreeNode } from "@blueprintjs/core";
 import { CHROME_TABS } from "./fixtures";
+import { safeMount } from "./safeMount";
 
 const DEFAULT_PROPS: TabTreeProps = {
   chromeTabs: CHROME_TABS,
@@ -19,14 +19,14 @@ const DEFAULT_PROPS: TabTreeProps = {
 };
 
 it("renders", () => {
-  const wrapper = mount(<TabTree {...DEFAULT_PROPS} />);
+  const wrapper = safeMount(<TabTree {...DEFAULT_PROPS} />);
   expect(wrapper.text()).toMatch(/Google/);
   expect(wrapper.text()).toMatch(/Yahoo/);
   expect(wrapper.text()).not.toMatch(/some random website/);
 });
 
 it("renders the selected tab as selected", () => {
-  const wrapper = mount(
+  const wrapper = safeMount(
     <TabTree {...DEFAULT_PROPS} selectedNodePath={[0, 0]} />
   );
   expect(
@@ -38,7 +38,9 @@ it("renders the selected tab as selected", () => {
 });
 
 it("renders the selected window as selected", () => {
-  const wrapper = mount(<TabTree {...DEFAULT_PROPS} selectedNodePath={[0]} />);
+  const wrapper = safeMount(
+    <TabTree {...DEFAULT_PROPS} selectedNodePath={[0]} />
+  );
   expect(
     wrapper
       .find(".bp3-tree-node-selected")
@@ -50,7 +52,7 @@ it("renders the selected window as selected", () => {
 
 it("removes the selected tab on Backspace", () => {
   const mockHandleCloseTab = jest.fn();
-  mount(
+  safeMount(
     <TabTree
       {...DEFAULT_PROPS}
       handleCloseTab={mockHandleCloseTab}
@@ -64,7 +66,7 @@ it("removes the selected tab on Backspace", () => {
 describe("selection", () => {
   it("selects a tab when clicked", () => {
     const mockSetSelectedNodePath = jest.fn();
-    const wrapper = mount(
+    const wrapper = safeMount(
       <TabTree
         {...DEFAULT_PROPS}
         setSelectedNodePath={mockSetSelectedNodePath}
@@ -85,7 +87,7 @@ describe("selection", () => {
 
   it("selects a window when clicked", () => {
     const mockSetSelectedNodePath = jest.fn();
-    const wrapper = mount(
+    const wrapper = safeMount(
       <TabTree
         {...DEFAULT_PROPS}
         setSelectedNodePath={mockSetSelectedNodePath}
@@ -112,7 +114,7 @@ describe("selection", () => {
       const mockSetSelectedNodePath = jest.fn();
       const mockMoveSelectedNodeUp = jest.fn();
       const mockMoveSelectedNodeDown = jest.fn();
-      mount(
+      safeMount(
         <TabTree
           {...DEFAULT_PROPS}
           selectedNodePath={initialNodePath}
@@ -145,7 +147,7 @@ describe("reordering tabs", () => {
       const mockHandleMoveTab = jest.fn();
       const mockMoveSelectedNodeDown = jest.fn();
       const mockMoveSelectedNodeUp = jest.fn();
-      mount(
+      safeMount(
         <TabTree
           {...DEFAULT_PROPS}
           handleMoveTab={mockHandleMoveTab}
@@ -175,7 +177,7 @@ describe("reordering tabs", () => {
     const mockSetSelectedNodePath = jest.fn();
     const mockMoveSelectedNodeDown = jest.fn();
     const mockMoveSelectedNodeUp = jest.fn();
-    mount(
+    safeMount(
       <TabTree
         {...DEFAULT_PROPS}
         handleMoveTab={mockHandleMoveTab}
@@ -196,7 +198,7 @@ describe("reordering tabs", () => {
 
 it("clears selection when Escape is pressed", () => {
   const mockSetSelectedNodePath = jest.fn();
-  mount(
+  safeMount(
     <TabTree
       {...DEFAULT_PROPS}
       selectedNodePath={[0, 0]}
@@ -209,7 +211,7 @@ it("clears selection when Escape is pressed", () => {
 
 it("goes to the selected tab when Enter is pressed", () => {
   const mockHandleGoToTab = jest.fn();
-  mount(
+  safeMount(
     <TabTree
       {...DEFAULT_PROPS}
       handleGoToTab={mockHandleGoToTab}
@@ -222,7 +224,7 @@ it("goes to the selected tab when Enter is pressed", () => {
 
 it("creates a new tab after the selected tab when Space is pressed", () => {
   const mockHandleCreateTabAfter = jest.fn();
-  mount(
+  safeMount(
     <TabTree
       {...DEFAULT_PROPS}
       handleCreateTabAfter={mockHandleCreateTabAfter}
