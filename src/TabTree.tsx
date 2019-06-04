@@ -92,14 +92,8 @@ export default function TabTree({
               tabIndex - 1
             );
           }
-        } else if (selectedNodePath != null) {
-          moveSelectedNodeUp();
         } else {
-          setSelectedNodePath([
-            groupedTabs.length - 1,
-            // Index of last tab in last window
-            groupedTabs[groupedTabs.length - 1].windowTabs.length - 1
-          ]);
+          moveSelectedNodeUp();
         }
       });
       handleKey("ArrowDown", e, () => {
@@ -117,10 +111,8 @@ export default function TabTree({
               tabIndex + 1
             );
           }
-        } else if (selectedNodePath != null) {
-          moveSelectedNodeDown();
         } else {
-          setSelectedNodePath([0, 0]);
+          moveSelectedNodeDown();
         }
       });
       handleKey("Escape", e, () => {

@@ -264,9 +264,11 @@ export type SelectedNodePath =
 
 export function keepSelectionWithinBounds(
   groupedTabs: GroupedTabs,
-  selectedNodePath: SelectedNodePath
-): SelectedNodePath {
-  if (selectedNodePath.length === 2) {
+  selectedNodePath: SelectedNodePath | null
+): SelectedNodePath | null {
+  if (selectedNodePath == null) {
+    return null;
+  } else if (selectedNodePath.length === 2) {
     let [windowIndex, tabIndex] = selectedNodePath;
 
     if (windowIndex >= groupedTabs.length) {
@@ -315,15 +317,18 @@ export function reduceSelectedNodePath(
     return action.selectedNodePath;
   }
 
-  if (selectedNodePath == null) {
-    return null;
-  }
-
   if (
     action.type === "MOVE_SELECTED_NODE_UP" ||
     action.type === "MOVE_SELECTED_NODE_DOWN"
   ) {
     const orderedNodePaths = getOrderedNodePaths(groupedTabs);
+
+    if (selectedNodePath == null) {
+      return action.type === "MOVE_SELECTED_NODE_UP"
+        ? orderedNodePaths[orderedNodePaths.length - 1]
+        : orderedNodePaths[0];
+    }
+
     const currentNodePathIndex = orderedNodePaths.findIndex(
       ([windowIndex, tabIndex]) =>
         windowIndex === selectedNodePath[0] && tabIndex === selectedNodePath[1]

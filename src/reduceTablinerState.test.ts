@@ -80,9 +80,8 @@ describe("reduceSelectedNodePath", () => {
 
     it("when moving the selection up", () => {
       const expectedNodePaths = orderedNodePaths.slice().reverse();
-      let selectedNodePath: SelectedNodePath | null = expectedNodePaths[0];
+      let selectedNodePath: SelectedNodePath | null = null;
       for (let i = 0; i < expectedNodePaths.length; i++) {
-        expect(selectedNodePath).toEqual(expectedNodePaths[i]);
         selectedNodePath = reduceSelectedNodePath(
           groupedTabs,
           selectedNodePath,
@@ -90,14 +89,14 @@ describe("reduceSelectedNodePath", () => {
             type: "MOVE_SELECTED_NODE_UP"
           }
         );
+        expect(selectedNodePath).toEqual(expectedNodePaths[i]);
       }
     });
 
     it("when moving the selection down", () => {
       const expectedNodePaths = orderedNodePaths;
-      let selectedNodePath: SelectedNodePath | null = expectedNodePaths[0];
+      let selectedNodePath: SelectedNodePath | null = null;
       for (let i = 0; i < expectedNodePaths.length; i++) {
-        expect(selectedNodePath).toEqual(expectedNodePaths[i]);
         selectedNodePath = reduceSelectedNodePath(
           groupedTabs,
           selectedNodePath,
@@ -105,6 +104,7 @@ describe("reduceSelectedNodePath", () => {
             type: "MOVE_SELECTED_NODE_DOWN"
           }
         );
+        expect(selectedNodePath).toEqual(expectedNodePaths[i]);
       }
     });
   });

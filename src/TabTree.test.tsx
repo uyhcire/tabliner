@@ -99,13 +99,9 @@ describe("selection", () => {
     expect(mockSetSelectedNodePath).lastCalledWith([0]);
   });
 
-  test.each([
-    ["ArrowDown", [0, 0], "down"],
-    ["ArrowUp", [0, 1], "up"],
-    // If no tab is initially selected, we should select the first or last tab
-    ["ArrowDown", null, 0],
-    ["ArrowUp", null, 1]
-  ] as Array<[string, [number, number] | null, number | "up" | "down"]>)(
+  test.each([["ArrowDown", [0, 0], "down"], ["ArrowUp", [0, 1], "up"]] as Array<
+    [string, [number, number] | null, "up" | "down"]
+  >)(
     "supports navigating up and down with the arrow keys (key %j, initial node path %j, expected index %j)",
     (
       key: string,
@@ -125,9 +121,7 @@ describe("selection", () => {
         />
       );
       document.dispatchEvent(new KeyboardEvent("keydown", { key }));
-      if (typeof expectedAction === "number") {
-        expect(mockSetSelectedNodePath).lastCalledWith([0, expectedAction]);
-      } else if (expectedAction === "up") {
+      if (expectedAction === "up") {
         expect(mockMoveSelectedNodeUp).toBeCalled();
       } else if (expectedAction === "down") {
         expect(mockMoveSelectedNodeDown).toBeCalled();
