@@ -264,20 +264,30 @@ export type SelectedNodePath =
 
 export function keepSelectionWithinBounds(
   groupedTabs: GroupedTabs,
-  selectedNodePath: [number, number]
+  selectedNodePath: SelectedNodePath
 ): SelectedNodePath {
-  let [windowIndex, tabIndex] = selectedNodePath;
+  if (selectedNodePath.length === 2) {
+    let [windowIndex, tabIndex] = selectedNodePath;
 
-  if (windowIndex >= groupedTabs.length) {
-    windowIndex = groupedTabs.length - 1;
-    tabIndex = groupedTabs[windowIndex].windowTabs.length - 1;
-  } else if (tabIndex < 0) {
-    tabIndex = 0;
-  } else if (tabIndex >= groupedTabs[windowIndex].windowTabs.length) {
-    tabIndex = groupedTabs[windowIndex].windowTabs.length - 1;
+    if (windowIndex >= groupedTabs.length) {
+      windowIndex = groupedTabs.length - 1;
+      tabIndex = groupedTabs[windowIndex].windowTabs.length - 1;
+    } else if (tabIndex < 0) {
+      tabIndex = 0;
+    } else if (tabIndex >= groupedTabs[windowIndex].windowTabs.length) {
+      tabIndex = groupedTabs[windowIndex].windowTabs.length - 1;
+    }
+
+    return [windowIndex, tabIndex];
+  } else if (selectedNodePath.length === 1) {
+    let [windowIndex] = selectedNodePath;
+    if (windowIndex >= groupedTabs.length) {
+      windowIndex = groupedTabs.length - 1;
+    }
+    return [windowIndex];
+  } else {
+    throw new Error("Expected either a tab or window to be selected");
   }
-
-  return [windowIndex, tabIndex];
 }
 
 export function reduceSelectedNodePath(
@@ -293,39 +303,36 @@ export function reduceSelectedNodePath(
     return null;
   }
 
-  if (selectedNodePath.length !== 2) {
-    throw new Error("Window selection is not currently supported");
-  }
-
   if (action.type === "MOVE_SELECTED_NODE_UP") {
     let [windowIndex, tabIndex] = selectedNodePath;
 
-    if (windowIndex === 0 && tabIndex === 0) {
+    if (windowIndex === 0 && tabIndex == null) {
       return selectedNodePath;
+    } else if (tabIndex === 0) {
+      return [windowIndex];
+    } else if (tabIndex == null) {
+      return [
+        windowIndex - 1,
+        groupedTabs[windowIndex - 1].windowTabs.length - 1
+      ];
+    } else {
+      return [windowIndex, tabIndex - 1];
     }
-
-    tabIndex -= 1;
-    if (tabIndex < 0) {
-      windowIndex -= 1;
-      tabIndex = groupedTabs[windowIndex].windowTabs.length - 1;
-    }
-    return [windowIndex, tabIndex];
   } else if (action.type === "MOVE_SELECTED_NODE_DOWN") {
     let [windowIndex, tabIndex] = selectedNodePath;
 
     if (
       windowIndex === groupedTabs.length - 1 &&
-      tabIndex === groupedTabs[groupedTabs.length - 1].windowTabs.length - 1
+      tabIndex === groupedTabs[windowIndex].windowTabs.length - 1
     ) {
       return selectedNodePath;
+    } else if (tabIndex === groupedTabs[windowIndex].windowTabs.length - 1) {
+      return [windowIndex + 1];
+    } else if (tabIndex == null) {
+      return [windowIndex, 0];
+    } else {
+      return [windowIndex, tabIndex + 1];
     }
-
-    tabIndex += 1;
-    if (tabIndex >= groupedTabs[windowIndex].windowTabs.length) {
-      windowIndex += 1;
-      tabIndex = 0;
-    }
-    return [windowIndex, tabIndex];
   } else {
     return keepSelectionWithinBounds(groupedTabs, selectedNodePath);
   }

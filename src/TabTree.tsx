@@ -165,6 +165,11 @@ export default function TabTree({
           label: `Window ${windowIndex + 1}`,
           isExpanded: true,
           hasCaret: false,
+          isSelected: Boolean(
+            selectedNodePath &&
+              selectedNodePath.length === 1 &&
+              selectedNodePath[0] === windowIndex
+          ),
           childNodes: windowTabs.map(
             (tab, windowTabIndex): ITreeNode => ({
               id:

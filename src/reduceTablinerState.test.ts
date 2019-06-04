@@ -5,7 +5,8 @@ import {
   GroupedTabs,
   groupTabsByWindow,
   reduceSelectedNodePath,
-  keepSelectionWithinBounds
+  keepSelectionWithinBounds,
+  SelectedNodePath
 } from "./reduceTablinerState";
 import {
   CHROME_TABS,
@@ -67,35 +68,46 @@ describe("reduceSelectedNodePath", () => {
     expect(newSelectedNodePath).toEqual([0, 1]);
   });
 
-  type MoveNodePathTestArgs = [
-    "up" | "down",
-    [number, number] | null,
-    [number, number] | null
-  ];
+  describe("respects the ordering of node paths", () => {
+    const orderedNodePaths: Array<SelectedNodePath> = [
+      [0],
+      [0, 0],
+      [0, 1],
+      [1],
+      [1, 0],
+      [1, 1]
+    ];
 
-  test.each([
-    ["up", null, null],
-    ["up", [0, 0], [0, 0]],
-    ["up", [0, 1], [0, 0]],
-    ["up", [1, 0], [0, 1]],
-    ["down", null, null],
-    ["down", [1, 1], [1, 1]],
-    ["down", [1, 0], [1, 1]],
-    ["down", [0, 1], [1, 0]]
-  ] as Array<MoveNodePathTestArgs>)(
-    "moves the node path up or down (direction %j, starting at %j, expected to end at %j)",
-    (...args: MoveNodePathTestArgs) => {
-      const [direction, selectedNodePath, expectedNodePath] = args;
-      const newSelectedNodePath = reduceSelectedNodePath(
-        groupedTabs,
-        selectedNodePath,
-        direction === "up"
-          ? { type: "MOVE_SELECTED_NODE_UP" }
-          : { type: "MOVE_SELECTED_NODE_DOWN" }
-      );
-      expect(newSelectedNodePath).toEqual(expectedNodePath);
-    }
-  );
+    it("when moving the selection up", () => {
+      const expectedNodePaths = orderedNodePaths.slice().reverse();
+      let selectedNodePath: SelectedNodePath | null = expectedNodePaths[0];
+      for (let i = 0; i < expectedNodePaths.length; i++) {
+        expect(selectedNodePath).toEqual(expectedNodePaths[i]);
+        selectedNodePath = reduceSelectedNodePath(
+          groupedTabs,
+          selectedNodePath,
+          {
+            type: "MOVE_SELECTED_NODE_UP"
+          }
+        );
+      }
+    });
+
+    it("when moving the selection down", () => {
+      const expectedNodePaths = orderedNodePaths;
+      let selectedNodePath: SelectedNodePath | null = expectedNodePaths[0];
+      for (let i = 0; i < expectedNodePaths.length; i++) {
+        expect(selectedNodePath).toEqual(expectedNodePaths[i]);
+        selectedNodePath = reduceSelectedNodePath(
+          groupedTabs,
+          selectedNodePath,
+          {
+            type: "MOVE_SELECTED_NODE_DOWN"
+          }
+        );
+      }
+    });
+  });
 });
 
 describe("keepSelectionWithinBounds", () => {
