@@ -2,7 +2,7 @@ import React from "react";
 
 import TabTree, { TabTreeProps } from "./TabTree";
 import { TreeNode } from "@blueprintjs/core";
-import { CHROME_TABS } from "./fixtures";
+import { CHROME_TABS, TWO_WINDOWS_TWO_TABS_EACH } from "./fixtures";
 import { safeMount } from "./safeMount";
 
 const DEFAULT_PROPS: TabTreeProps = {
@@ -233,4 +233,21 @@ it("creates a new tab after the selected tab when Space is pressed", () => {
   );
   document.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
   expect(mockHandleCreateTabAfter).lastCalledWith(CHROME_TABS[0].id);
+});
+
+it("merges the selected window with the previous window when Backspace is pressed", () => {
+  const mockHandleMergeWindows = jest.fn();
+  safeMount(
+    <TabTree
+      {...DEFAULT_PROPS}
+      chromeTabs={TWO_WINDOWS_TWO_TABS_EACH}
+      handleMergeWindows={mockHandleMergeWindows}
+      selectedNodePath={[1]}
+    />
+  );
+  document.dispatchEvent(new KeyboardEvent("keydown", { key: "Backspace" }));
+  expect(mockHandleMergeWindows).lastCalledWith({
+    sourceWindowId: TWO_WINDOWS_TWO_TABS_EACH[2].windowId,
+    destinationWindowId: TWO_WINDOWS_TWO_TABS_EACH[0].windowId
+  });
 });
