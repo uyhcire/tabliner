@@ -9,7 +9,9 @@ let allWrappers: Array<ReactWrapper> = [];
  * By unmounting all components after each test, we can ensure that
  * event listeners are automatically cleaned up.
  */
-export const safeMount: typeof mount = (...args: Parameters<typeof mount>) => {
+export const safeMount: typeof mount = (
+  ...args: Parameters<typeof mount>
+): ReturnType<typeof mount> => {
   // eslint-disable-next-line no-restricted-syntax
   const wrapper = mount(...args);
   allWrappers.push(wrapper);
