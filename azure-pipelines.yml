@@ -16,3 +16,6 @@ steps:
 
   - script: yarn test
     displayName: "Run tests"
+
+  - script: yarn build
+    displayName: "Make sure bundle can build"
