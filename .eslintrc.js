@@ -42,5 +42,10 @@ module.exports = {
         message: "Use `safeMount` instead of Enzyme's `mount`"
       }
     ]
+  },
+  settings: {
+    react: {
+      version: "detect"
+    }
   }
 };

@@ -6,7 +6,9 @@
   "scripts": {
     "build": "parcel build src/main.tsx -d build/ -o main.js",
     "watch": "parcel watch src/main.tsx -d build/ -o main.js",
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint --ext .jsx,.js,.tsx,.ts . --ignore-pattern node_modules/ --ignore-pattern .yarn/ --ignore-pattern build/",
+    "typecheck": "tsc --noEmit"
   },
   "author": "Eric Yu",
   "dependencies": {
