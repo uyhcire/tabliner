@@ -4,8 +4,8 @@ import React from "react";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
 
-import TabTree from "./TabTree";
-import { useTablinerState } from "./useTablinerState";
+import TabTree from "TabTree";
+import { useTablinerState } from "useTablinerState";
 
 function App(): JSX.Element | null {
   const {

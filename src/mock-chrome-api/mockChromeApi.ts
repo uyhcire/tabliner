@@ -1,6 +1,6 @@
-import { ChromeTab } from "../ChromeTab";
-import { CHROME_WINDOWS } from "../fixtures";
-import { cleanUpEnzymeAfterEachTest } from "../safeMount";
+import { ChromeTab } from "ChromeTab";
+import { CHROME_WINDOWS } from "fixtures";
+import { cleanUpEnzymeAfterEachTest } from "safeMount";
 
 interface MockEvent<ListenerType> {
   addListener: (cb: ListenerType) => void;

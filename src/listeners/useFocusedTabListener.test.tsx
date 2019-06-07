@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { act } from "react-dom/test-utils";
 
-import { useFocusedTabListener } from "./useFocusedTabListener";
-import { TWO_TABS } from "../fixtures";
+import { TWO_TABS } from "fixtures";
+import { useFocusedTabListener } from "listeners/useFocusedTabListener";
 import {
   ChromeApiListeners,
   teardownChromeApiMock,
   mockChromeApi
-} from "../mock-chrome-api/mockChromeApi";
-import { safeMount } from "../safeMount";
+} from "mock-chrome-api/mockChromeApi";
+import { safeMount } from "safeMount";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function MockChildComponent(props: { focusedTabId: number | null }): null {

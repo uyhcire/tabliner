@@ -1,12 +1,13 @@
 import { useEffect, useReducer } from "react";
-import { ChromeTab } from "./ChromeTab";
+
+import { ChromeTab } from "ChromeTab";
 import {
   reduceTablinerState,
   SelectedNodePath,
   groupTabsByWindow
-} from "./reduceTablinerState";
-import { useFocusedWindowListener } from "./listeners/useFocusedWindowListener";
-import { useFocusedTabListener } from "./listeners/useFocusedTabListener";
+} from "reduceTablinerState";
+import { useFocusedWindowListener } from "listeners/useFocusedWindowListener";
+import { useFocusedTabListener } from "listeners/useFocusedTabListener";
 
 function findChromeTab(chromeTabs: Array<ChromeTab>, tabId: number): ChromeTab {
   const tab = chromeTabs.find(tab => tab.id === tabId);

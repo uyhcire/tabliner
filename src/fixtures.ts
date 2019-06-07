@@ -1,4 +1,4 @@
-import { ChromeTab } from "./ChromeTab";
+import { ChromeTab } from "ChromeTab";
 
 export const CHROME_WINDOWS: Array<chrome.windows.Window> = [
   {

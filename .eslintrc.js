@@ -8,7 +8,8 @@ module.exports = {
   extends: [
     "eslint:recommended",
     "plugin:react/recommended",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
+    "plugin:import/typescript"
   ],
   globals: {
     Atomics: "readonly",
@@ -23,7 +24,7 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: "module"
   },
-  plugins: ["react", "@typescript-eslint", "react-hooks", "jest"],
+  plugins: ["react", "@typescript-eslint", "react-hooks", "jest", "import"],
   rules: {
     indent: "off",
     "@typescript-eslint/indent": "off",
@@ -35,6 +36,38 @@ module.exports = {
     "@typescript-eslint/no-non-null-assertion": "off",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "error",
+    "import/no-unresolved": "error",
+    "import/no-unused-modules": "error",
+    "import/no-nodejs-modules": "error",
+    "import/first": "error",
+    "import/no-duplicates": "error",
+    "import/extensions": [
+      "error",
+      {
+        js: "never",
+        jsx: "never",
+        ts: "never",
+        tsx: "never"
+      }
+    ],
+    "import/order": [
+      "error",
+      {
+        "newlines-between": "always"
+      }
+    ],
+    "import/newline-after-import": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: [
+          // Substitute for import/no-relative-parent-imports, which gives false positives with plugin:import/typescript
+          "../*",
+          // Don't allow relative imports, even from the same directory
+          "./*"
+        ]
+      }
+    ],
     "no-restricted-syntax": [
       "error",
       {
@@ -44,6 +77,11 @@ module.exports = {
     ]
   },
   settings: {
+    "import/resolver": {
+      node: {
+        paths: ["src"]
+      }
+    },
     react: {
       version: "detect"
     }

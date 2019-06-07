@@ -1,6 +1,6 @@
 import produce from "immer";
 
-import { ChromeTab } from "./ChromeTab";
+import { ChromeTab } from "ChromeTab";
 
 interface QueryReturned {
   type: "QUERY_RETURNED";

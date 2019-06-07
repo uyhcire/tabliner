@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { act } from "react-dom/test-utils";
 
-import { useFocusedWindowListener } from "./useFocusedWindowListener";
 import {
   ChromeApiListeners,
   mockChromeApi,
   teardownChromeApiMock
-} from "../mock-chrome-api/mockChromeApi";
-import { TWO_TABS, CHROME_WINDOWS } from "../fixtures";
-import { safeMount } from "../safeMount";
+} from "mock-chrome-api/mockChromeApi";
+import { TWO_TABS, CHROME_WINDOWS } from "fixtures";
+import { safeMount } from "safeMount";
+import { useFocusedWindowListener } from "listeners/useFocusedWindowListener";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function MockChildComponent(props: { focusedWindowId: number | null }): null {

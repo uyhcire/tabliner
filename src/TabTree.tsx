@@ -2,12 +2,12 @@ import React, { useEffect } from "react";
 import { Tree, ITreeNode } from "@blueprintjs/core";
 import scrollIntoView from "scroll-into-view-if-needed";
 
-import { ChromeTab } from "./ChromeTab";
+import { ChromeTab } from "ChromeTab";
 import {
   SelectedNodePath,
   GroupedTabs,
   groupTabsByWindow
-} from "./reduceTablinerState";
+} from "reduceTablinerState";
 
 // Helper to make sure we call e.preventDefault() if and only if we handle the key
 function handleKey(key: string, e: KeyboardEvent, handler: () => void): void {
