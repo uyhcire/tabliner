@@ -1,20 +1,15 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- master
+  - master
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: "ubuntu-latest"
 
 steps:
-- script: yarn lint
-  displayName: 'Lint'
+  - script: yarn lint
+    displayName: "Lint"
 
-- script: yarn typecheck
-  displayName: 'Typecheck'
+  - script: yarn typecheck
+    displayName: "Typecheck"
 
-- script: yarn test
-  displayName: 'Run tests'
+  - script: yarn test
+    displayName: "Run tests"
