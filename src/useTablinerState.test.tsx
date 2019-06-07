@@ -1,20 +1,20 @@
 import React from "react";
 import { act } from "react-dom/test-utils";
 
-import { useTablinerState } from "useTablinerState";
+import { ChromeTab } from "ChromeTab";
 import {
   TWO_TABS,
   makeChromeTabs,
   makeChromeTab,
   TWO_WINDOWS_TWO_TABS_EACH
 } from "fixtures";
-import { ChromeTab } from "ChromeTab";
 import {
   ChromeApiListeners,
   mockChromeApi,
   teardownChromeApiMock
 } from "mock-chrome-api/mockChromeApi";
 import { safeMount } from "safeMount";
+import { useTablinerState } from "useTablinerState";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function MockChildComponent(props: {

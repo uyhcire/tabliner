@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
 import { Tree, ITreeNode } from "@blueprintjs/core";
+import React, { useEffect } from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
 
 import { ChromeTab } from "ChromeTab";

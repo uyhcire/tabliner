@@ -1,3 +1,4 @@
+import { TWO_TABS, makeChromeTab, TWO_WINDOWS_TWO_TABS_EACH } from "fixtures";
 import {
   TablinerState,
   reduceTablinerState,
@@ -8,7 +9,6 @@ import {
   keepSelectionWithinBounds,
   SelectedNodePath
 } from "reduceTablinerState";
-import { TWO_TABS, makeChromeTab, TWO_WINDOWS_TWO_TABS_EACH } from "fixtures";
 
 describe("reduceForTabInserted", () => {
   test.each([

@@ -1,9 +1,9 @@
-import React from "react";
 import { TreeNode } from "@blueprintjs/core";
+import React from "react";
 
-import TabTree, { TabTreeProps } from "TabTree";
 import { TWO_TABS, TWO_WINDOWS_TWO_TABS_EACH } from "fixtures";
 import { safeMount } from "safeMount";
+import TabTree, { TabTreeProps } from "TabTree";
 
 const DEFAULT_PROPS: TabTreeProps = {
   chromeTabs: TWO_TABS,

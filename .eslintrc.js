@@ -24,7 +24,14 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: "module"
   },
-  plugins: ["react", "@typescript-eslint", "react-hooks", "jest", "import"],
+  plugins: [
+    "react",
+    "@typescript-eslint",
+    "react-hooks",
+    "jest",
+    "import",
+    "eslint-plugin-import-helpers"
+  ],
   rules: {
     indent: "off",
     "@typescript-eslint/indent": "off",
@@ -50,10 +57,11 @@ module.exports = {
         tsx: "never"
       }
     ],
-    "import/order": [
+    "import-helpers/order-imports": [
       "error",
       {
-        "newlines-between": "always"
+        "newlines-between": "always",
+        alphabetize: { order: "asc", ignoreCase: true }
       }
     ],
     "import/newline-after-import": "error",
