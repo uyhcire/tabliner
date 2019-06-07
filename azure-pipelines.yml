@@ -5,6 +5,9 @@ pool:
   vmImage: "ubuntu-latest"
 
 steps:
+  - script: yarn
+    displayName: "Install packages"
+
   - script: yarn lint
     displayName: "Lint"
 
