@@ -24,6 +24,8 @@
     "tslib": "^1.9.3"
   },
   "devDependencies": {
+    "@babel/core": "^7.4.5",
+    "@babel/preset-typescript": "^7.3.3",
     "@types/chrome": "^0.0.83",
     "@types/enzyme": "^3.9.2",
     "@types/enzyme-adapter-react-16": "^1.0.5",
@@ -32,6 +34,7 @@
     "@types/react-dom": "^16.8",
     "@typescript-eslint/eslint-plugin": "1.9.0",
     "@typescript-eslint/parser": "1.9.0",
+    "babel-plugin-module-resolver": "^3.2.0",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.13.0",
     "eslint": "^5.16.0",
