@@ -28,6 +28,13 @@ function MockChildComponent(props: {
     newIndexInWindow: number
   ): void;
   handleCreateTabAfter(tabId: number): void;
+  handleMergeWindows({
+    sourceWindowId,
+    destinationWindowId
+  }: {
+    sourceWindowId: number;
+    destinationWindowId: number;
+  }): void;
 }): null {
   return null;
 }
@@ -39,7 +46,8 @@ function MockComponent(): JSX.Element {
     focusedTabId,
     handleCloseTab,
     handleMoveTab,
-    handleCreateTabAfter
+    handleCreateTabAfter,
+    handleMergeWindows
   } = useTablinerState();
 
   return (
@@ -50,6 +58,7 @@ function MockComponent(): JSX.Element {
       handleCloseTab={handleCloseTab}
       handleMoveTab={handleMoveTab}
       handleCreateTabAfter={handleCreateTabAfter}
+      handleMergeWindows={handleMergeWindows}
     />
   );
 }
@@ -121,6 +130,24 @@ describe("performing actions", () => {
         index: 1
       },
       expect.any(Function)
+    );
+  });
+
+  it("merges windows", () => {
+    chrome.tabs.query = (_queryInfo, callback) => {
+      callback(TWO_WINDOWS_TWO_TABS_EACH);
+    };
+    const wrapper = safeMount(<MockComponent />);
+    wrapper
+      .find(MockChildComponent)
+      .props()
+      .handleMergeWindows({
+        sourceWindowId: TWO_WINDOWS_TWO_TABS_EACH[2].windowId,
+        destinationWindowId: TWO_WINDOWS_TWO_TABS_EACH[0].windowId
+      });
+    expect(chrome.tabs.move).lastCalledWith(
+      [TWO_WINDOWS_TWO_TABS_EACH[2].id, TWO_WINDOWS_TWO_TABS_EACH[3].id],
+      { windowId: TWO_WINDOWS_TWO_TABS_EACH[0].windowId, index: -1 }
     );
   });
 });
