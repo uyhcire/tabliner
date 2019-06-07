@@ -2,11 +2,11 @@ import React from "react";
 
 import TabTree, { TabTreeProps } from "./TabTree";
 import { TreeNode } from "@blueprintjs/core";
-import { CHROME_TABS, TWO_WINDOWS_TWO_TABS_EACH } from "./fixtures";
+import { TWO_TABS, TWO_WINDOWS_TWO_TABS_EACH } from "./fixtures";
 import { safeMount } from "./safeMount";
 
 const DEFAULT_PROPS: TabTreeProps = {
-  chromeTabs: CHROME_TABS,
+  chromeTabs: TWO_TABS,
   handleCloseTab: () => {},
   handleMoveTab: () => {},
   handleGoToTab: () => {},
@@ -34,7 +34,7 @@ it("renders the selected tab as selected", () => {
       .find(".bp3-tree-node-selected")
       .find(".bp3-tree-node-label")
       .text()
-  ).toEqual(CHROME_TABS[0].title);
+  ).toEqual(TWO_TABS[0].title);
 });
 
 it("renders the selected window as selected", () => {
@@ -60,7 +60,7 @@ it("removes the selected tab on Backspace", () => {
     />
   );
   document.dispatchEvent(new KeyboardEvent("keydown", { key: "Backspace" }));
-  expect(mockHandleCloseTab).lastCalledWith(CHROME_TABS[0].id);
+  expect(mockHandleCloseTab).lastCalledWith(TWO_TABS[0].id);
 });
 
 describe("selection", () => {
@@ -160,8 +160,8 @@ describe("reordering tabs", () => {
         new KeyboardEvent("keydown", { key, metaKey: true })
       );
       expect(mockHandleMoveTab).lastCalledWith(
-        CHROME_TABS[initialIndex].windowId,
-        CHROME_TABS[initialIndex].id,
+        TWO_TABS[initialIndex].windowId,
+        TWO_TABS[initialIndex].id,
         expectedIndex
       );
       if (expectedDirection === "up") {
@@ -219,7 +219,7 @@ it("goes to the selected tab when Enter is pressed", () => {
     />
   );
   document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
-  expect(mockHandleGoToTab).lastCalledWith(CHROME_TABS[0].id);
+  expect(mockHandleGoToTab).lastCalledWith(TWO_TABS[0].id);
 });
 
 it("creates a new tab after the selected tab when Space is pressed", () => {
@@ -232,7 +232,7 @@ it("creates a new tab after the selected tab when Space is pressed", () => {
     />
   );
   document.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
-  expect(mockHandleCreateTabAfter).lastCalledWith(CHROME_TABS[0].id);
+  expect(mockHandleCreateTabAfter).lastCalledWith(TWO_TABS[0].id);
 });
 
 it("merges the selected window with the previous window when Backspace is pressed", () => {

@@ -3,7 +3,7 @@ import { act } from "react-dom/test-utils";
 
 import { useTablinerState } from "./useTablinerState";
 import {
-  CHROME_TABS,
+  TWO_TABS,
   makeChromeTabs,
   makeChromeTab,
   TWO_WINDOWS_TWO_TABS_EACH
@@ -65,7 +65,7 @@ function MockComponent(): JSX.Element {
 
 let listeners: ChromeApiListeners;
 beforeEach(() => {
-  listeners = mockChromeApi(CHROME_TABS);
+  listeners = mockChromeApi(TWO_TABS);
 });
 
 it("returns null initially", () => {
@@ -76,9 +76,7 @@ it("returns null initially", () => {
 
 it("returns fetched tabs", () => {
   const wrapper = safeMount(<MockComponent />);
-  expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual(
-    CHROME_TABS
-  );
+  expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual(TWO_TABS);
 });
 
 describe("performing actions", () => {
@@ -87,8 +85,8 @@ describe("performing actions", () => {
     wrapper
       .find(MockChildComponent)
       .props()
-      .handleCloseTab(CHROME_TABS[0].id);
-    expect(chrome.tabs.remove).lastCalledWith(CHROME_TABS[0].id);
+      .handleCloseTab(TWO_TABS[0].id);
+    expect(chrome.tabs.remove).lastCalledWith(TWO_TABS[0].id);
   });
 
   it("moves tabs", () => {
@@ -96,8 +94,8 @@ describe("performing actions", () => {
     wrapper
       .find(MockChildComponent)
       .props()
-      .handleMoveTab(CHROME_TABS[0].windowId, CHROME_TABS[0].id, 1);
-    expect(chrome.tabs.move).lastCalledWith(CHROME_TABS[0].id, { index: 1 });
+      .handleMoveTab(TWO_TABS[0].windowId, TWO_TABS[0].id, 1);
+    expect(chrome.tabs.move).lastCalledWith(TWO_TABS[0].id, { index: 1 });
   });
 
   it("moves tabs when there is more than one window", () => {
@@ -122,10 +120,10 @@ describe("performing actions", () => {
     wrapper
       .find(MockChildComponent)
       .props()
-      .handleCreateTabAfter(CHROME_TABS[0].id);
+      .handleCreateTabAfter(TWO_TABS[0].id);
     expect(chrome.tabs.create).lastCalledWith(
       {
-        windowId: CHROME_TABS[0].windowId,
+        windowId: TWO_TABS[0].windowId,
         // New tab is to the right of the first tab
         index: 1
       },
@@ -156,30 +154,30 @@ describe("responds to Tab API events", () => {
   it("removes tabs from the list when they are closed", () => {
     const wrapper = safeMount(<MockComponent />);
     act(() => {
-      listeners.tabs.onRemoved[0](CHROME_TABS[0].id, {
-        windowId: CHROME_TABS[0].windowId,
+      listeners.tabs.onRemoved[0](TWO_TABS[0].id, {
+        windowId: TWO_TABS[0].windowId,
         isWindowClosing: false
       });
     });
     wrapper.update();
     expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
-      { ...CHROME_TABS[1], index: 0 }
+      { ...TWO_TABS[1], index: 0 }
     ]);
   });
 
   it("reorders tabs in the list when they are moved", () => {
     const wrapper = safeMount(<MockComponent />);
     act(() => {
-      listeners.tabs.onMoved[0](CHROME_TABS[0].id, {
+      listeners.tabs.onMoved[0](TWO_TABS[0].id, {
         fromIndex: 0,
         toIndex: 1,
-        windowId: CHROME_TABS[0].windowId
+        windowId: TWO_TABS[0].windowId
       });
     });
     wrapper.update();
     expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
-      { ...CHROME_TABS[1], index: 0 },
-      { ...CHROME_TABS[0], index: 1 }
+      { ...TWO_TABS[1], index: 0 },
+      { ...TWO_TABS[0], index: 1 }
     ]);
   });
 
@@ -259,7 +257,7 @@ describe("responds to Tab API events", () => {
     const newTab: ChromeTab = makeChromeTab({
       id: 1234,
       index: 0,
-      windowId: CHROME_TABS[0].windowId,
+      windowId: TWO_TABS[0].windowId,
       url: "https://example.com",
       title: "Example"
     });
@@ -269,8 +267,8 @@ describe("responds to Tab API events", () => {
     wrapper.update();
     expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
       newTab,
-      { ...CHROME_TABS[0], index: 1 },
-      { ...CHROME_TABS[1], index: 2 }
+      { ...TWO_TABS[0], index: 1 },
+      { ...TWO_TABS[1], index: 2 }
     ]);
   });
 
@@ -279,7 +277,7 @@ describe("responds to Tab API events", () => {
     const newTab: ChromeTab = makeChromeTab({
       id: 1234,
       index: 2,
-      windowId: CHROME_TABS[0].windowId,
+      windowId: TWO_TABS[0].windowId,
       url: "https://example.com",
       title: "Example"
     });
@@ -288,7 +286,7 @@ describe("responds to Tab API events", () => {
     });
     wrapper.update();
     expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
-      ...CHROME_TABS,
+      ...TWO_TABS,
       newTab
     ]);
   });
@@ -307,7 +305,7 @@ describe("responds to Tab API events", () => {
     });
     wrapper.update();
     expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
-      ...CHROME_TABS,
+      ...TWO_TABS,
       newTab
     ]);
   });
@@ -317,9 +315,9 @@ describe("responds to Tab API events", () => {
 
     act(() => {
       listeners.tabs.onUpdated[0](
-        CHROME_TABS[0].id,
+        TWO_TABS[0].id,
         {},
-        { ...CHROME_TABS[0], title: "new title !" }
+        { ...TWO_TABS[0], title: "new title !" }
       );
     });
     wrapper.update();
@@ -334,14 +332,14 @@ describe("responds to Tab API events", () => {
     const wrapper = safeMount(<MockComponent />);
     act(() => {
       listeners.tabs.onActivated[0]({
-        tabId: CHROME_TABS[1].id,
-        windowId: CHROME_TABS[1].windowId
+        tabId: TWO_TABS[1].id,
+        windowId: TWO_TABS[1].windowId
       });
     });
     wrapper.update();
     expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
-      { ...CHROME_TABS[0], active: false },
-      { ...CHROME_TABS[1], active: true }
+      { ...TWO_TABS[0], active: false },
+      { ...TWO_TABS[1], active: true }
     ]);
   });
 
@@ -350,7 +348,7 @@ describe("responds to Tab API events", () => {
 
     act(() => {
       listeners.windows.onFocusChanged.forEach(listener =>
-        listener(CHROME_TABS[1].windowId)
+        listener(TWO_TABS[1].windowId)
       );
     });
     wrapper.update();
@@ -358,32 +356,32 @@ describe("responds to Tab API events", () => {
     act(() => {
       listeners.tabs.onActivated.forEach(listener =>
         listener({
-          tabId: CHROME_TABS[1].id,
-          windowId: CHROME_TABS[1].windowId
+          tabId: TWO_TABS[1].id,
+          windowId: TWO_TABS[1].windowId
         })
       );
     });
     wrapper.update();
 
     expect(wrapper.find(MockChildComponent).props()).toMatchObject({
-      focusedWindowId: CHROME_TABS[1].windowId,
-      focusedTabId: CHROME_TABS[1].id
+      focusedWindowId: TWO_TABS[1].windowId,
+      focusedTabId: TWO_TABS[1].id
     });
   });
 
   it("detaches and re-attaches a tab", () => {
     const wrapper = safeMount(<MockComponent />);
 
-    const windowId = CHROME_TABS[0].windowId;
+    const windowId = TWO_TABS[0].windowId;
     act(() => {
-      listeners.tabs.onDetached[0](CHROME_TABS[0].id, {
+      listeners.tabs.onDetached[0](TWO_TABS[0].id, {
         oldWindowId: windowId,
         oldPosition: 0
       });
     });
     wrapper.update();
     act(() => {
-      listeners.tabs.onAttached[0](CHROME_TABS[0].id, {
+      listeners.tabs.onAttached[0](TWO_TABS[0].id, {
         newWindowId: windowId,
         newPosition: 1
       });
@@ -391,8 +389,8 @@ describe("responds to Tab API events", () => {
     wrapper.update();
 
     expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
-      { ...CHROME_TABS[1], index: 0 },
-      { ...CHROME_TABS[0], index: 1 }
+      { ...TWO_TABS[1], index: 0 },
+      { ...TWO_TABS[0], index: 1 }
     ]);
   });
 });

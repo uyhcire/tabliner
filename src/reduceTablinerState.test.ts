@@ -8,11 +8,7 @@ import {
   keepSelectionWithinBounds,
   SelectedNodePath
 } from "./reduceTablinerState";
-import {
-  CHROME_TABS,
-  makeChromeTab,
-  TWO_WINDOWS_TWO_TABS_EACH
-} from "./fixtures";
+import { TWO_TABS, makeChromeTab, TWO_WINDOWS_TWO_TABS_EACH } from "./fixtures";
 
 describe("reduceForTabInserted", () => {
   test.each([
@@ -113,7 +109,7 @@ describe("reduceSelectedNodePath", () => {
 describe("keepSelectionWithinBounds", () => {
   it("after closing the rightmost tab in a window", () => {
     const newSelectedNodePath = keepSelectionWithinBounds(
-      groupTabsByWindow([CHROME_TABS[0]]),
+      groupTabsByWindow([TWO_TABS[0]]),
       [0, 1]
     );
     expect(newSelectedNodePath).toEqual([0, 0]);
@@ -170,7 +166,7 @@ it("handles moving tabs when there are multiple windows", () => {
 
 it("sets the selected node path", () => {
   const state: TablinerState = {
-    chromeTabs: CHROME_TABS,
+    chromeTabs: TWO_TABS,
     detachedTabs: [],
     ownTabId: null,
     focusedWindowId: null,
@@ -188,20 +184,20 @@ it("sets the selected node path", () => {
 
 it("auto-selects the previously focused tab if Tabliner's own tab is focused", () => {
   const state: TablinerState = {
-    chromeTabs: CHROME_TABS,
+    chromeTabs: TWO_TABS,
     detachedTabs: [],
-    ownTabId: CHROME_TABS[1].id,
-    focusedWindowId: CHROME_TABS[0].windowId,
-    focusedTabId: CHROME_TABS[0].id,
+    ownTabId: TWO_TABS[1].id,
+    focusedWindowId: TWO_TABS[0].windowId,
+    focusedTabId: TWO_TABS[0].id,
     selectedNodePath: null
   };
 
   const newState = reduceTablinerState(state, {
     type: "TAB_FOCUSED",
-    tabId: CHROME_TABS[1].id
+    tabId: TWO_TABS[1].id
   });
 
-  expect(newState.focusedTabId).toEqual(CHROME_TABS[1].id);
+  expect(newState.focusedTabId).toEqual(TWO_TABS[1].id);
   expect(newState.selectedNodePath).toEqual([0, 0]);
 });
 
@@ -209,20 +205,20 @@ it("auto-selects the previously focused tab if Tabliner's own tab is focused", (
 // So don't auto-select the Tabliner tab, even if it was the most recently focused.
 it("never auto-selects Tabliner's own tab", () => {
   const state: TablinerState = {
-    chromeTabs: CHROME_TABS,
+    chromeTabs: TWO_TABS,
     detachedTabs: [],
-    ownTabId: CHROME_TABS[1].id,
-    focusedWindowId: CHROME_TABS[1].windowId,
-    focusedTabId: CHROME_TABS[1].id,
-    selectedNodePath: [0, CHROME_TABS[0].index]
+    ownTabId: TWO_TABS[1].id,
+    focusedWindowId: TWO_TABS[1].windowId,
+    focusedTabId: TWO_TABS[1].id,
+    selectedNodePath: [0, TWO_TABS[0].index]
   };
 
   const newState = reduceTablinerState(state, {
     type: "TAB_FOCUSED",
-    tabId: CHROME_TABS[1].id
+    tabId: TWO_TABS[1].id
   });
 
   // Tabliner's own tab is focused, but it's not selected in Tabliner
-  expect(newState.focusedTabId).toEqual(CHROME_TABS[1].id);
+  expect(newState.focusedTabId).toEqual(TWO_TABS[1].id);
   expect(newState.selectedNodePath).toEqual([0, 0]);
 });

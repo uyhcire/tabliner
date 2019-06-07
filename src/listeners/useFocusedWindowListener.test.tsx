@@ -7,7 +7,7 @@ import {
   mockChromeApi,
   teardownChromeApiMock
 } from "../mock-chrome-api/mockChromeApi";
-import { CHROME_TABS, CHROME_WINDOWS } from "../fixtures";
+import { TWO_TABS, CHROME_WINDOWS } from "../fixtures";
 import { safeMount } from "../safeMount";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -25,7 +25,7 @@ function MockComponent(): JSX.Element {
 
 let listeners: ChromeApiListeners;
 beforeEach(() => {
-  listeners = mockChromeApi(CHROME_TABS);
+  listeners = mockChromeApi(TWO_TABS);
 });
 
 it("responds to focus change", () => {

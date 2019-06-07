@@ -68,7 +68,7 @@ export function makeChromeTabs(
   return tabs;
 }
 
-export const CHROME_TABS: Array<ChromeTab & { id: number }> = makeChromeTabs([
+export const TWO_TABS: Array<ChromeTab & { id: number }> = makeChromeTabs([
   { url: "https://google.com", title: "Google" },
   { url: "https://yahoo.com", title: "Yahoo" }
 ]);
