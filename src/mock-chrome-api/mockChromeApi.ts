@@ -7,6 +7,9 @@ interface MockEvent<ListenerType> {
   removeListener: (cb: ListenerType) => void;
 }
 
+type RuntimeExtensionMessageListener = Parameters<
+  chrome.runtime.ExtensionMessageEvent["addListener"]
+>[0];
 type TabMovedListener = Parameters<chrome.tabs.TabMovedEvent["addListener"]>[0];
 type TabRemovedListener = Parameters<
   chrome.tabs.TabRemovedEvent["addListener"]
@@ -33,6 +36,7 @@ type WindowFocusChangedListener = Parameters<
 export interface MockChromeApi {
   runtime: {
     sendMessage: typeof chrome.runtime.sendMessage;
+    onMessage: MockEvent<RuntimeExtensionMessageListener>;
   };
   tabs: {
     query: typeof chrome.tabs.query;
@@ -58,6 +62,9 @@ declare let global: NodeJS.Global & {
 };
 
 export interface ChromeApiListeners {
+  runtime: {
+    onMessage: Array<RuntimeExtensionMessageListener>;
+  };
   tabs: {
     onMoved: Array<TabMovedListener>;
     onRemoved: Array<TabRemovedListener>;
@@ -80,6 +87,9 @@ export function mockChromeApi(tabs: Array<ChromeTab>): ChromeApiListeners {
   }
 
   const listeners: ChromeApiListeners = {
+    runtime: {
+      onMessage: []
+    },
     tabs: {
       onMoved: [],
       onRemoved: [],
@@ -95,7 +105,19 @@ export function mockChromeApi(tabs: Array<ChromeTab>): ChromeApiListeners {
   };
 
   global.chrome = {
-    runtime: { sendMessage: jest.fn() },
+    runtime: {
+      sendMessage: jest.fn(),
+      onMessage: {
+        addListener: (cb: RuntimeExtensionMessageListener) => {
+          listeners.runtime.onMessage.push(cb);
+        },
+        removeListener: (cb: RuntimeExtensionMessageListener) => {
+          listeners.runtime.onMessage = listeners.runtime.onMessage.filter(
+            listener => listener !== cb
+          );
+        }
+      }
+    },
     tabs: {
       query: (_options: never, cb: (tabs: Array<ChromeTab>) => void) => {
         cb(tabs);

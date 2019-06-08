@@ -61,6 +61,7 @@ export type TablinerAction =
   | { type: "OWN_TAB_ID_FETCHED"; tabId: number }
   | { type: "WINDOW_FOCUSED"; windowId: number | null }
   | { type: "TAB_FOCUSED"; tabId: number }
+  | { type: "SWITCHED_TO_TABLINER" }
   | {
       type: "SET_SELECTED_NODE_PATH";
       selectedNodePath: SelectedNodePath | null;
@@ -385,30 +386,27 @@ export function reduceTablinerState(
 
   let focusedTabId = state.focusedTabId;
   if (action.type === "TAB_FOCUSED") {
-    const previousFocusedTabId = focusedTabId;
     focusedTabId = action.tabId;
+  }
 
-    /*
-     * If Tabliner's tab is focused, select the tab you were previously using.
-     *
-     * This way, if you change your mind, it's easy to go back.
-     */
-    if (
-      groupedTabs != null &&
-      action.tabId === ownTabId &&
-      // If Tabliner is already open, we don't want to mess with the user's selection.
-      // So don't auto-select the Tabliner tab, even if it was the most recently focused.
-      previousFocusedTabId !== ownTabId
-    ) {
-      outer: for (const [
-        windowIndex,
-        { windowTabs }
-      ] of groupedTabs.entries()) {
-        for (const [tabIndex, tab] of windowTabs.entries()) {
-          if (tab.id === previousFocusedTabId) {
-            selectedNodePath = [windowIndex, tabIndex];
-            break outer;
-          }
+  /*
+   * If you switch to Tabliner, select the tab you were previously using.
+   *
+   * This way, if you change your mind, it's easy to go back.
+   */
+  if (
+    action.type === "SWITCHED_TO_TABLINER" &&
+    groupedTabs != null &&
+    // If Tabliner is already open, we don't want to mess with the user's selection.
+    // So don't auto-select the Tabliner tab, even if it was the most recently focused.
+    focusedTabId !== ownTabId
+  ) {
+    outer: for (const [windowIndex, { windowTabs }] of groupedTabs.entries()) {
+      for (const [tabIndex, tab] of windowTabs.entries()) {
+        if (tab.id === focusedTabId) {
+          selectedNodePath = [windowIndex, tabIndex];
+          focusedTabId = ownTabId;
+          break outer;
         }
       }
     }

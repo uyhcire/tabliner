@@ -175,6 +175,17 @@ export function useTablinerState(): {
   }
   useFocusedTabListener(chromeTabs, focusedWindowId, handleTabFocused);
 
+  useEffect(() => {
+    function handleSwitchedToTabliner(message: unknown): void {
+      if (message === "SWITCHED_TO_TABLINER") {
+        dispatch({ type: "SWITCHED_TO_TABLINER" });
+      }
+    }
+    chrome.runtime.onMessage.addListener(handleSwitchedToTabliner);
+    return () =>
+      chrome.runtime.onMessage.removeListener(handleSwitchedToTabliner);
+  }, []);
+
   return {
     chromeTabs,
     focusedWindowId,

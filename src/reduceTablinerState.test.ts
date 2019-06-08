@@ -193,8 +193,7 @@ it("auto-selects the previously focused tab if Tabliner's own tab is focused", (
   };
 
   const newState = reduceTablinerState(state, {
-    type: "TAB_FOCUSED",
-    tabId: TWO_TABS[1].id
+    type: "SWITCHED_TO_TABLINER"
   });
 
   expect(newState.focusedTabId).toEqual(TWO_TABS[1].id);
@@ -214,8 +213,7 @@ it("never auto-selects Tabliner's own tab", () => {
   };
 
   const newState = reduceTablinerState(state, {
-    type: "TAB_FOCUSED",
-    tabId: TWO_TABS[1].id
+    type: "SWITCHED_TO_TABLINER"
   });
 
   // Tabliner's own tab is focused, but it's not selected in Tabliner
