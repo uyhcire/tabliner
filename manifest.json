@@ -20,12 +20,5 @@
       "description": "Open Tabliner"
     }
   },
-  "permissions": ["tabs", "windows"],
-
-  "content_scripts": [
-    {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["build/main.js"]
-    }
-  ]
+  "permissions": ["tabs", "windows"]
 }
