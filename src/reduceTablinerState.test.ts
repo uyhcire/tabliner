@@ -182,7 +182,7 @@ it("sets the selected node path", () => {
   expect(newState.selectedNodePath).toEqual([0, 1]);
 });
 
-it("auto-selects the previously focused tab if Tabliner's own tab is focused", () => {
+it("auto-selects the previously focused tab if Tabliner is switched to", () => {
   const state: TablinerState = {
     chromeTabs: TWO_TABS,
     detachedTabs: [],
@@ -200,8 +200,31 @@ it("auto-selects the previously focused tab if Tabliner's own tab is focused", (
   expect(newState.selectedNodePath).toEqual([0, 0]);
 });
 
+// Autoselection can be confusing, so restrict it to when the user explicitly switches to Tabliner.
+//
+// If Tabliner's tab happens to be focused without an explicit action that triggers a SWITCHED_TO_TABLINER message,
+// it should not autoselect any tab.
+it("does not autoselect a tab if Tabliner's tab is focused without an explicit SWITCHED_TO_TABLINER action", () => {
+  const state: TablinerState = {
+    chromeTabs: TWO_TABS,
+    detachedTabs: [],
+    ownTabId: TWO_TABS[1].id,
+    focusedWindowId: TWO_TABS[0].windowId,
+    focusedTabId: TWO_TABS[0].id,
+    selectedNodePath: null
+  };
+
+  const newState = reduceTablinerState(state, {
+    type: "TAB_FOCUSED",
+    tabId: TWO_TABS[1].id
+  });
+
+  // Selection should not change
+  expect(newState.selectedNodePath).toEqual(null);
+});
+
 // If Tabliner is already open, we don't want to mess with the user's selection.
-// So don't auto-select the Tabliner tab, even if it was the most recently focused.
+// So don't auto-select the Tabliner tab, even if it was explicitly switched to.
 it("never auto-selects Tabliner's own tab", () => {
   const state: TablinerState = {
     chromeTabs: TWO_TABS,
