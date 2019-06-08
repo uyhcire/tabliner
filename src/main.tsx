@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
 
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
@@ -20,6 +20,13 @@ function App(): JSX.Element | null {
     handleCreateTabAfter,
     handleMergeWindows
   } = useTablinerState();
+
+  const numTabs: number | null = chromeTabs && chromeTabs.length;
+  useEffect(() => {
+    chrome.browserAction.setBadgeText({
+      text: numTabs != null ? String(numTabs) : ""
+    });
+  }, [numTabs]);
 
   return (
     <div>
