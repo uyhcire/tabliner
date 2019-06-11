@@ -29,6 +29,9 @@ type TabDetachedListener = Parameters<
 type TabAttachedListener = Parameters<
   chrome.tabs.TabAttachedEvent["addListener"]
 >[0];
+type TabReplacedListener = Parameters<
+  chrome.tabs.TabReplacedEvent["addListener"]
+>[0];
 type WindowFocusChangedListener = Parameters<
   chrome.windows.WindowIdEvent["addListener"]
 >[0];
@@ -50,6 +53,7 @@ export interface MockChromeApi {
     onActivated: MockEvent<TabActivatedListener>;
     onDetached: MockEvent<TabDetachedListener>;
     onAttached: MockEvent<TabAttachedListener>;
+    onReplaced: MockEvent<TabReplacedListener>;
   };
   windows: {
     getAll(callback: (windows: Array<chrome.windows.Window>) => void): void;
@@ -73,6 +77,7 @@ export interface ChromeApiListeners {
     onActivated: Array<TabActivatedListener>;
     onDetached: Array<TabDetachedListener>;
     onAttached: Array<TabAttachedListener>;
+    onReplaced: Array<TabReplacedListener>;
   };
   windows: {
     onFocusChanged: Array<WindowFocusChangedListener>;
@@ -97,7 +102,8 @@ export function mockChromeApi(tabs: Array<ChromeTab>): ChromeApiListeners {
       onUpdated: [],
       onActivated: [],
       onDetached: [],
-      onAttached: []
+      onAttached: [],
+      onReplaced: []
     },
     windows: {
       onFocusChanged: []
@@ -191,6 +197,16 @@ export function mockChromeApi(tabs: Array<ChromeTab>): ChromeApiListeners {
         },
         removeListener: (cb: TabAttachedListener) => {
           listeners.tabs.onAttached = listeners.tabs.onAttached.filter(
+            listener => listener !== cb
+          );
+        }
+      },
+      onReplaced: {
+        addListener: (cb: TabReplacedListener) => {
+          listeners.tabs.onReplaced.push(cb);
+        },
+        removeListener: (cb: TabReplacedListener) => {
+          listeners.tabs.onReplaced = listeners.tabs.onReplaced.filter(
             listener => listener !== cb
           );
         }

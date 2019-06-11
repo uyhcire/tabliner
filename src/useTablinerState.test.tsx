@@ -393,6 +393,20 @@ describe("responds to Tab API events", () => {
       { ...TWO_TABS[0], index: 1 }
     ]);
   });
+
+  it("replaces a tab ID", () => {
+    const wrapper = safeMount(<MockComponent />);
+
+    act(() => {
+      listeners.tabs.onReplaced[0](12345, TWO_TABS[0].id);
+    });
+    wrapper.update();
+
+    expect(wrapper.find(MockChildComponent).props().chromeTabs).toEqual([
+      { ...TWO_TABS[0], id: 12345 },
+      TWO_TABS[1]
+    ]);
+  });
 });
 
 afterEach(() => {

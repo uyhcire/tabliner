@@ -46,6 +46,12 @@ interface TabAttachedEvent {
   attachInfo: chrome.tabs.TabAttachInfo;
 }
 
+interface TabReplacedEvent {
+  type: "TAB_REPLACED_EVENT";
+  addedTabId: number;
+  removedTabId: number;
+}
+
 type ChromeTabsEvent =
   | QueryReturned
   | TabRemovedEvent
@@ -54,7 +60,8 @@ type ChromeTabsEvent =
   | TabUpdatedEvent
   | TabActivatedEvent
   | TabDetachedEvent
-  | TabAttachedEvent;
+  | TabAttachedEvent
+  | TabReplacedEvent;
 
 export type TablinerAction =
   | ChromeTabsEvent
@@ -246,6 +253,16 @@ export function reduceChromeTabs(
           windowId: attachInfo.newWindowId,
           index: attachInfo.newPosition
         });
+        break;
+      }
+      case "TAB_REPLACED_EVENT": {
+        const { addedTabId, removedTabId } = event;
+        if (!chromeTabs.some(tab => tab.id === removedTabId)) {
+          throw new Error("Tab to replace could not be found");
+        }
+        newTabs = chromeTabs.map(tab =>
+          tab.id === removedTabId ? { ...tab, id: addedTabId } : tab
+        );
         break;
       }
       default:

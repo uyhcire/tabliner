@@ -159,6 +159,14 @@ export function useTablinerState(): {
     return () => chrome.tabs.onAttached.removeListener(handleTabAttached);
   });
 
+  useEffect(() => {
+    function logTabReplaced(addedTabId: number, removedTabId: number): void {
+      dispatch({ type: "TAB_REPLACED_EVENT", addedTabId, removedTabId });
+    }
+    chrome.tabs.onReplaced.addListener(logTabReplaced);
+    return () => chrome.tabs.onReplaced.removeListener(logTabReplaced);
+  }, [chromeTabs]);
+
   useEffect((): void => {
     chrome.runtime.sendMessage({ type: "GET_TAB_ID" }, (tabId: number) => {
       dispatch({ type: "OWN_TAB_ID_FETCHED", tabId });
