@@ -18,4 +18,12 @@ steps:
     displayName: "Run tests"
 
   - script: yarn build
-    displayName: "Make sure bundle can build"
+    displayName: "Build bundle"
+
+  - script: ./pack.sh
+    displayName: Pack extension as ZIP
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: /tmp/tabliner.zip
+      artifactName: ZIP
