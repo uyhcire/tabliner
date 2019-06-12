@@ -25,5 +25,5 @@ steps:
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: /tmp/tabliner.zip
+      pathtoPublish: /tmp/tabliner/*
       artifactName: tabliner
