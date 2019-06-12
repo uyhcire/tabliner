@@ -1,7 +1,7 @@
 {
   "name": "tabliner",
   "version": "0.0.2",
-  "description": "Chrome extension for managing tabs",
+  "description": "Fast, keyboard-driven Chrome tab manager",
   "main": "src/main.js",
   "scripts": {
     "build": "parcel build src/main.tsx -d build/ -o main.js",

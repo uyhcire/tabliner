@@ -2,7 +2,7 @@
   "manifest_version": 2,
 
   "name": "Tabliner",
-  "description": "Manage your tabs",
+  "description": "Fast, keyboard-driven Chrome tab manager",
   "version": "0.0.2",
 
   "background": {
