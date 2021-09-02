@@ -15,7 +15,7 @@
     "@blueprintjs/core": "^3.15.1",
     "babel-preset-env": "^1.6.1",
     "babel-preset-react": "^6.24.1",
-    "immer": "^3.1.2",
+    "immer": "^9.0.6",
     "listeners": "^1.0.4",
     "parcel-bundler": "^1.6.2",
     "react": "^16.8",
